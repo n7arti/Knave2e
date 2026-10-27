@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/logo-128.png" sizes="128x128" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- No viewport-fit=cover and no black-translucent: the OS keeps the page
+         out of the status bar, notch and home indicator. Opting in means every
+         screen must pad itself with env(safe-area-inset-*); none did, and the
+         header ended up under the iOS status bar in the home-screen app. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>Ролебаза</title>
+    <!-- Yandex.Metrika counter — deferred until analytics consent is granted -->
+    <script type="text/javascript">
+      (function () {
+        window._initMetrika = function () {
+          if (window._metrikaLoaded) return;
+          window._metrikaLoaded = true;
+          (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+          })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107054231','ym');
+          ym(107054231,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+        };
+        try {
+          if (localStorage.getItem('rb_consent_analytics') === 'granted') window._initMetrika();
+        } catch (e) {}
+      })();
+    </script>
+    <!-- /Yandex.Metrika counter -->
+    <script type="module" crossorigin src="/assets/index-DOGSg3s7.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-MaABAjYg.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CdaUlX6s.css">
+  </head>
+  <body>
+    <!-- Theme detection: sync, runs before first paint (~200 bytes) -->
+    <script>
+      try{var t=localStorage.getItem('vtt_theme');if(t==='dark'||t==='arcane'||((!t||t==='system')&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-dark','');}catch(e){}
+    </script>
+    <!-- Pre-React splash: lives OUTSIDE #root so it persists through React.Suspense.
+         Removed by App.tsx on first render via document.getElementById('splash')?.remove() -->
+    <div id="splash-host">
+      <style>
+        #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:#f5f5f5;z-index:99999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+        [data-dark] #splash{background:#1a1a2e}
+        #splash svg{animation:splash-pulse 2s ease-in-out infinite}
+        @keyframes splash-pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.04)}}
+        #splash-msg{font-size:14px;color:rgba(0,0,0,0.35);transition:opacity 0.4s;min-height:20px;text-align:center}
+        [data-dark] #splash-msg{color:rgba(255,255,255,0.3)}
+        .sd{display:none}[data-dark] .sl{display:none}[data-dark] .sd{display:inline}
+      </style>
+      <div id="splash">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="61.80 56.20 76.40 86.50" width="120" height="136">
+          <defs>
+            <filter id="_tl"><feColorMatrix type="matrix" values="0.88 0 0 0 0  0 0.86 0 0 0  0 0 0.84 0 0  0 0 0 1 0"/></filter>
+            <filter id="_tr"><feColorMatrix type="matrix" values="0.78 0 0 0 0  0 0.75 0 0 0  0 0 0.72 0 0  0 0 0 1 0"/></filter>
+            <filter id="_dtl"><feColorMatrix type="matrix" values="0.85 0 0 0 0.01  0 0.83 0 0 0  0 0 0.80 0 0  0 0 0 1 0"/></filter>
+            <filter id="_dtr"><feColorMatrix type="matrix" values="0.75 0 0 0 0.01  0 0.72 0 0 0  0 0 0.70 0 0  0 0 0 1 0"/></filter>
+          </defs>
+          <!-- bw-light faces -->
+          <g class="sl">
+            <path d="M 95.67,60.70 Q 100.00,58.20 104.33,60.70 L 129.96,75.50 Q 134.29,78.00 129.96,80.50 L 104.33,95.30 Q 100.00,97.80 95.67,95.30 L 70.04,80.50 Q 65.71,78.00 70.04,75.50 Z" fill="rgba(0,0,0,0.05)"/>
+            <path d="M 63.80,86.30 Q 63.80,81.30 68.13,83.80 L 93.76,98.60 Q 98.09,101.10 98.09,106.10 L 98.09,135.70 Q 98.09,140.70 93.76,138.20 L 68.13,123.40 Q 63.80,120.90 63.80,115.90 Z" fill="rgba(0,0,0,0.09)"/>
+            <path d="M 131.87,83.80 Q 136.20,81.30 136.20,86.30 L 136.20,115.90 Q 136.20,120.90 131.87,123.40 L 106.24,138.20 Q 101.91,140.70 101.91,135.70 L 101.91,106.10 Q 101.91,101.10 106.24,98.60 Z" fill="rgba(0,0,0,0.14)"/>
+            <path d="M200 0V1200L0 1300L400 1500L600 1400V200L800 100L400 -100ZM600 1400 1000 1600 1400 1400V800L800 500L600 600L1000 800V1200Z" fill="#505050" transform="translate(100.00,78.00) scale(0.013672,-0.013672) translate(-700,-750)"/>
+            <g filter="url(#_tl)"><clipPath id="_cl"><polygon points="63.80,81.30 98.09,101.10 98.09,140.70 63.80,120.90"/></clipPath>
+              <g clip-path="url(#_cl)"><g transform="matrix(34.2936,19.8000,0.0000,39.6000,63.8012,81.3000)"><g transform="translate(0.1400,0.1400) scale(0.007500,0.007500)"><g transform="translate(0,96) scale(0.1,-0.1)" fill="#505050" stroke="none"><path d="M424 873 c-116 -95 -161 -106 -312 -79 -115 21 -114 23 -59 -180 57 -210 58 -214 103 -264 59 -65 105 -85 199 -85 90 0 136 19 192 77 86 90 92 173 29 405 -24 89 -47 167 -51 173 -12 19 -33 10 -101 -47z m76 -75 c6 -24 23 -85 37 -137 33 -123 29 -193 -13 -253 -58 -82 -178 -112 -264 -66 -69 37 -95 84 -139 248 -22 80 -38 146 -37 148 2 1 27 -2 56 -8 120 -23 193 -6 280 65 30 24 58 44 62 45 4 0 12 -19 18 -42z"/><path d="M395 709 c-27 -13 -46 -44 -39 -64 8 -19 38 -19 54 0 7 8 25 14 43 12 24 -1 32 3 35 17 8 37 -47 57 -93 35z"/><path d="M203 655 c-31 -13 -50 -46 -38 -65 9 -15 41 -12 55 5 8 9 22 12 41 8 54 -10 49 45 -6 60 -11 4 -34 0 -52 -8z"/><path d="M426 485 c-9 -25 -70 -47 -100 -35 -34 13 -58 2 -54 -24 4 -30 68 -50 117 -36 44 12 94 60 89 87 -4 23 -43 30 -52 8z"/><path d="M654 505 c-4 -9 0 -23 7 -31 17 -16 103 -34 166 -34 l44 0 -76 -149 c-90 -177 -116 -203 -219 -209 -65 -4 -106 10 -166 58 -31 25 -63 17 -58 -13 4 -27 77 -83 126 -97 104 -29 217 2 283 78 48 54 193 360 179 377 -6 8 -48 15 -113 18 -56 4 -117 9 -134 13 -25 5 -34 2 -39 -11z"/><path d="M642 381 c-24 -15 -10 -46 23 -49 17 -2 38 -11 48 -20 13 -12 22 -13 34 -6 27 17 26 32 -1 59 -26 26 -77 34 -104 16z"/><path d="M474 235 c-11 -28 4 -45 40 -45 35 0 43 -5 71 -45 11 -16 17 -18 32 -9 26 17 18 54 -17 87 -24 21 -40 27 -75 27 -31 0 -47 -5 -51 -15z"/></g></g></g></g>
+            </g>
+            <g filter="url(#_tr)"><clipPath id="_cr"><polygon points="136.20,81.30 136.20,120.90 101.91,140.70 101.91,101.10"/></clipPath>
+              <g clip-path="url(#_cr)"><g transform="matrix(34.2936,-19.8000,0.0000,39.6000,101.9052,101.1000)"><g transform="translate(0.1400,0.1400) scale(0.03,0.03) translate(24,0) scale(-1,1)"><path d="M19 17V5a2 2 0 0 0-2-2H4" fill="none" stroke="#505050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" fill="none" stroke="#505050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
+              <line x1="119.05" y1="111.00" x2="120.08" y2="109.22" stroke="#505050" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="120.08" y2="111.59" stroke="#505050" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="118.02" y2="112.78" stroke="#505050" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="118.02" y2="110.41" stroke="#505050" stroke-linecap="round" stroke-width="0.8"/>
+            </g>
+          </g>
+          <!-- bw-dark faces (shown when data-dark) -->
+          <g class="sd">
+            <path d="M 95.67,60.70 Q 100.00,58.20 104.33,60.70 L 129.96,75.50 Q 134.29,78.00 129.96,80.50 L 104.33,95.30 Q 100.00,97.80 95.67,95.30 L 70.04,80.50 Q 65.71,78.00 70.04,75.50 Z" fill="rgba(255,255,255,0.10)"/>
+            <path d="M 63.80,86.30 Q 63.80,81.30 68.13,83.80 L 93.76,98.60 Q 98.09,101.10 98.09,106.10 L 98.09,135.70 Q 98.09,140.70 93.76,138.20 L 68.13,123.40 Q 63.80,120.90 63.80,115.90 Z" fill="rgba(255,255,255,0.06)"/>
+            <path d="M 131.87,83.80 Q 136.20,81.30 136.20,86.30 L 136.20,115.90 Q 136.20,120.90 131.87,123.40 L 106.24,138.20 Q 101.91,140.70 101.91,135.70 L 101.91,106.10 Q 101.91,101.10 106.24,98.60 Z" fill="rgba(255,255,255,0.03)"/>
+            <path d="M200 0V1200L0 1300L400 1500L600 1400V200L800 100L400 -100ZM600 1400 1000 1600 1400 1400V800L800 500L600 600L1000 800V1200Z" fill="#a0a0a0" transform="translate(100.00,78.00) scale(0.013672,-0.013672) translate(-700,-750)"/>
+            <g filter="url(#_dtl)"><clipPath id="_dcl"><polygon points="63.80,81.30 98.09,101.10 98.09,140.70 63.80,120.90"/></clipPath>
+              <g clip-path="url(#_dcl)"><g transform="matrix(34.2936,19.8000,0.0000,39.6000,63.8012,81.3000)"><g transform="translate(0.1400,0.1400) scale(0.007500,0.007500)"><g transform="translate(0,96) scale(0.1,-0.1)" fill="#a0a0a0" stroke="none"><path d="M424 873 c-116 -95 -161 -106 -312 -79 -115 21 -114 23 -59 -180 57 -210 58 -214 103 -264 59 -65 105 -85 199 -85 90 0 136 19 192 77 86 90 92 173 29 405 -24 89 -47 167 -51 173 -12 19 -33 10 -101 -47z m76 -75 c6 -24 23 -85 37 -137 33 -123 29 -193 -13 -253 -58 -82 -178 -112 -264 -66 -69 37 -95 84 -139 248 -22 80 -38 146 -37 148 2 1 27 -2 56 -8 120 -23 193 -6 280 65 30 24 58 44 62 45 4 0 12 -19 18 -42z"/><path d="M395 709 c-27 -13 -46 -44 -39 -64 8 -19 38 -19 54 0 7 8 25 14 43 12 24 -1 32 3 35 17 8 37 -47 57 -93 35z"/><path d="M203 655 c-31 -13 -50 -46 -38 -65 9 -15 41 -12 55 5 8 9 22 12 41 8 54 -10 49 45 -6 60 -11 4 -34 0 -52 -8z"/><path d="M426 485 c-9 -25 -70 -47 -100 -35 -34 13 -58 2 -54 -24 4 -30 68 -50 117 -36 44 12 94 60 89 87 -4 23 -43 30 -52 8z"/><path d="M654 505 c-4 -9 0 -23 7 -31 17 -16 103 -34 166 -34 l44 0 -76 -149 c-90 -177 -116 -203 -219 -209 -65 -4 -106 10 -166 58 -31 25 -63 17 -58 -13 4 -27 77 -83 126 -97 104 -29 217 2 283 78 48 54 193 360 179 377 -6 8 -48 15 -113 18 -56 4 -117 9 -134 13 -25 5 -34 2 -39 -11z"/><path d="M642 381 c-24 -15 -10 -46 23 -49 17 -2 38 -11 48 -20 13 -12 22 -13 34 -6 27 17 26 32 -1 59 -26 26 -77 34 -104 16z"/><path d="M474 235 c-11 -28 4 -45 40 -45 35 0 43 -5 71 -45 11 -16 17 -18 32 -9 26 17 18 54 -17 87 -24 21 -40 27 -75 27 -31 0 -47 -5 -51 -15z"/></g></g></g></g>
+            </g>
+            <g filter="url(#_dtr)"><clipPath id="_dcr"><polygon points="136.20,81.30 136.20,120.90 101.91,140.70 101.91,101.10"/></clipPath>
+              <g clip-path="url(#_dcr)"><g transform="matrix(34.2936,-19.8000,0.0000,39.6000,101.9052,101.1000)"><g transform="translate(0.1400,0.1400) scale(0.03,0.03) translate(24,0) scale(-1,1)"><path d="M19 17V5a2 2 0 0 0-2-2H4" fill="none" stroke="#a0a0a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3" fill="none" stroke="#a0a0a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
+              <line x1="119.05" y1="111.00" x2="120.08" y2="109.22" stroke="#a0a0a0" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="120.08" y2="111.59" stroke="#a0a0a0" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="118.02" y2="112.78" stroke="#a0a0a0" stroke-linecap="round" stroke-width="0.8"/>
+              <line x1="119.05" y1="111.00" x2="118.02" y2="110.41" stroke="#a0a0a0" stroke-linecap="round" stroke-width="0.8"/>
+            </g>
+          </g>
+        </svg>
+        <div id="splash-msg"></div>
+      </div>
+      <script>
+        (function(){
+          var m=[
+            'Точим мечи...','Проверяем доспехи...','Расставляем ловушки...','Готовим засаду...','Пересчитываем хиты...','Изучаем слабости врага...','Натягиваем тетиву...','Выстраиваем порядок инициативы...','Варим зелья...','Готовим заклинания...','Набираем наёмников...','Осматриваем поле боя...','Распределяем лут...','Чистим оружие...','Выбираем позицию...','Проверяем запас стрел...','Благословляем клинки...','Разведка докладывает...',
+            'Листаем компендиум...','Перечитываем легенды...','Записываем хронику...','Изучаем древние свитки...','Распределяем роли...','Сверяемся с бестиарием...','Ищем нужную главу...','Открываем книгу правил...','Дописываем предысторию...','Расшифровываем руны...','Проверяем заметки мастера...','Составляем досье на NPC...','Вспоминаем прошлую сессию...','Уточняем правила магии...','Читаем пророчество...','Раскрываем тайны лора...','Перебираем слухи в таверне...','Переводим с эльфийского...',
+            'Ищем потерянный кубик...','Расставляем миниатюры...','Раскладываем карту...','Ставим ширму мастера...','Зажигаем свечи...','Протираем стол...','Раскуриваем трубки...','Завариваем чай...','Перемешиваем колоду...','Подкручиваем факелы...','Расставляем токены...','Калибруем сетку...','Проверяем кубики на баланс...','Настраиваем освещение...','Раскладываем листы персонажей...','Перетасовываем карты случайных встреч...','Включаем эмбиент...','Наливаем эль...',
+            'Варвар сломал ещё один стул...','Бард запел — враги разбежались...','Рейнджер заблудился...','Паладин читает мораль гоблину...','Книга зарычала...','Страницы перелистываются сами...','Кто-то украл сыр...','Мастер загадочно улыбается...','Кубик закатился под диван...','D4 впился в ногу...'
+          ];
+          var el=document.getElementById('splash-msg'),last=-1;
+          function pick(){var i;do{i=Math.random()*m.length|0}while(i===last);last=i;el.style.opacity='0';setTimeout(function(){el.textContent=m[i];el.style.opacity='1'},400)}
+          pick();setInterval(pick,5000);
+        })();
+      </script>
+    </div>
+    <div id="root"></div>
+  </body>
+</html>

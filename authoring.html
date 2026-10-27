@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try{var vt=new URLSearchParams(location.search).get('theme')||sessionStorage.getItem('vtt_theme_effective')||localStorage.getItem('vtt_theme');if(vt==='light'||vt==='dark'||vt==='arcane'||vt==='parchment')document.documentElement.setAttribute('data-theme',vt);}catch(e){}</script>
+  <title>Процесс сборки системы правил — Ролебаза, документация для агента</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4efe5;
+      --paper: #fffaf1;
+      --ink: #241f19;
+      --muted: #6d6255;
+      --line: #d9ccb8;
+      --accent: #9b5a20;
+      --accent-soft: #f2dfc5;
+      --code: #211e1a;
+      --code-ink: #f8ecd9;
+      --good: #27653a;
+      --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(54, 38, 20, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        --bg: #171411;
+        --paper: #211d19;
+        --ink: #f4e8d5;
+        --muted: #bbae9b;
+        --line: #4a4035;
+        --accent: #e0a85e;
+        --accent-soft: #3b2d1c;
+        --code: #100f0d;
+        --code-ink: #f4e5ca;
+        --good: #8ed09c;
+        --warn: #e8a267;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .32);
+      }
+    }
+
+    /* Базовые темы стола: страница подхватывает выбор пользователя Ролебазы
+       (localStorage vtt_theme → data-theme на html). Без data-theme действует
+       автономная схема выше (пергамент + prefers-color-scheme). */
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f5; --paper: #ffffff; --ink: #333333; --muted: #666666;
+      --line: #dddddd; --accent: #4263eb; --accent-soft: #e7f3ff;
+      --code: #1f2430; --code-ink: #e6edf7; --good: #2e7d32; --warn: #b45309;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .10);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #1a1a2e; --paper: #16213e; --ink: #e0e0e0; --muted: #9fa8bb;
+      --line: #2a3a5c; --accent: #748ffc; --accent-soft: #1e2c4f;
+      --code: #111827; --code-ink: #dbe4ff; --good: #6bdb86; --warn: #f0a860;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .35);
+    }
+    :root[data-theme="arcane"] {
+      color-scheme: dark;
+      --bg: #1c1815; --paper: #2e2822; --ink: #f5e6ca; --muted: #a69b8d;
+      --line: #594d3f; --accent: #d4af60; --accent-soft: #3d352c;
+      --code: #26211c; --code-ink: #f0e0be; --good: #7bc98a; --warn: #e0a85e;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+    }
+    :root[data-theme="parchment"] {
+      color-scheme: light;
+      --bg: #e8dcc8; --paper: #faf5ec; --ink: #20150b; --muted: #6b5a45;
+      --line: #d5c3a1; --accent: #af6c28; --accent-soft: #eeddc2;
+      --code: #211e1a; --code-ink: #f8ecd9; --good: #2e7d32; --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(66, 36, 9, .14);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .08em .3em; border-radius: .25em; background: var(--accent-soft); }
+    pre {
+      margin: 1rem 0;
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+      tab-size: 2;
+    }
+    pre code { padding: 0; background: transparent; }
+    header {
+      padding: 5rem max(1.25rem, calc((100% - 1120px) / 2)) 3.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { max-width: 900px; margin: .45rem 0 1rem; font-family: Georgia, serif; font-size: clamp(2.4rem, 6vw, 5.5rem); line-height: .98; }
+    header p { max-width: 760px; font-size: 1.2rem; color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.4rem; margin-top: 1.5rem; }
+    .meta-date { color: var(--muted); }
+    .meta-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .22em; }
+    .meta-link:hover { text-decoration-thickness: 2.5px; }
+    .layout { display: grid; grid-template-columns: 255px minmax(0, 820px); gap: 3rem; max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+    nav { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--paper) 92%, transparent); }
+    nav strong { display: block; margin: 0 0 .6rem; }
+    nav a { display: block; padding: .28rem .2rem; color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    nav .nav-part { margin: .8rem 0 .2rem; color: var(--accent); font-size: .78rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    main { min-width: 0; overflow-wrap: anywhere; }
+    section { scroll-margin-top: 2rem; margin: 0 0 4.5rem; }
+    h2 { margin: 0 0 1rem; font: 700 clamp(1.8rem, 4vw, 2.8rem)/1.1 Georgia, serif; }
+    h3 { margin: 2.2rem 0 .6rem; font-size: 1.25rem; }
+    h4 { margin: 1.4rem 0 .45rem; }
+    p { margin: .65rem 0 1rem; }
+    .lead { font-size: 1.12rem; color: var(--muted); }
+    .card, .callout, details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .card, .callout { padding: 1rem 1.2rem; margin: 1.2rem 0; }
+    .callout { border-left: 5px solid var(--accent); }
+    .callout.good { border-left-color: var(--good); }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.scene { border-left-color: var(--good); }
+    .scene-label { display: block; margin-bottom: .25rem; color: var(--good); font-size: .8rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+    .steps { counter-reset: tutorial-step; }
+    .tutorial-step { position: relative; padding-left: 3.2rem; margin: 2rem 0; }
+    .tutorial-step::before {
+      counter-increment: tutorial-step;
+      content: counter(tutorial-step);
+      position: absolute; left: 0; top: -.1rem;
+      width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+      border-radius: 50%; background: var(--accent); color: var(--paper); font-weight: 800;
+    }
+    figure { margin: 1.5rem 0 2.2rem; }
+    figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); background: #fff; }
+    figure svg { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+    figcaption { margin-top: .55rem; color: var(--muted); font-size: .92rem; }
+    /* Inline SVG diagram parts — colours strictly from theme variables. */
+    .d-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+    .d-zone { fill: color-mix(in srgb, var(--accent-soft) 60%, transparent); stroke: var(--line); stroke-width: 1.2; }
+    .d-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+    .d-good-edge { stroke: var(--good); stroke-width: 1.8; }
+    .d-warn-edge { stroke: var(--warn); stroke-width: 1.8; }
+    .d-text { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+    .d-small { fill: var(--ink); font: 500 13.5px system-ui, sans-serif; }
+    .d-mono { fill: var(--ink); font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .d-muted { fill: var(--muted); font: 12.5px system-ui, sans-serif; }
+    .d-title { fill: var(--accent); font: 700 12.5px system-ui, sans-serif; letter-spacing: .07em; }
+    .d-line { stroke: var(--accent); stroke-width: 2; fill: none; }
+    .d-arrow { fill: var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.7rem; font-size: .94rem; }
+    th, td { padding: .7rem .75rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); }
+    td:first-child { white-space: nowrap; }
+    .table-scroll { max-width: 100%; overflow-x: auto; }
+    .table-scroll table { min-width: 620px; overflow-wrap: normal; }
+    details { margin: .8rem 0; padding: .8rem 1rem; box-shadow: none; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary .when { color: var(--muted); font-weight: 500; }
+    .tag { display: inline-block; margin: .1rem .15rem .1rem 0; padding: .08rem .42rem; border-radius: .35rem; background: var(--accent-soft); font: .82rem ui-monospace, monospace; }
+    .yes { color: var(--good); font-weight: 700; }
+    .json { color: var(--warn); font-weight: 700; }
+    .checklist li { margin: .45rem 0; }
+    .ladder { list-style: none; margin: 1rem 0 1.4rem; padding: 0; }
+    .ladder li { position: relative; margin: .45rem 0; padding: .65rem .85rem .65rem 2.5rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .ladder li::before { content: "?"; position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; }
+    .ladder li.final::before { content: "="; color: var(--good); }
+    .ladder .then { color: var(--muted); }
+    footer { padding: 2rem max(1.25rem, calc((100% - 1120px) / 2)); border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; max-height: none; }
+      .grid { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Ролебаза · документация для подключённого агента</div>
+  <h1>Процесс сборки системы правил</h1>
+  <p>Порядок сборки от полей к листам, четыре диалекта формул, стадии проверки, диагностика, политики и невыразимое.</p>
+  <div class="meta">
+    <span class="meta-date">Актуально на 2026-10-13</span>
+    <a class="meta-link" href="index.html">Все страницы →</a>
+    <a class="meta-link" href="updates.html">Версии и изменения →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav aria-label="Оглавление">
+    <strong>Оглавление</strong>
+    <a href="#комплект-и-старшинство">1. Комплект и старшинство</a>
+    <a href="#два-канала">2. Два канала</a>
+    <a href="#инварианты-которые-ломают-чаще-всего">3. Инварианты, которые ломают чаще всего</a>
+    <a href="#порядок-сборки">4. Порядок сборки</a>
+    <a href="#загрузка-системы-одним-файлом">5. Загрузка системы одним файлом</a>
+    <a href="#десять-документов-редактора">6. Десять документов редактора</a>
+    <a href="#четыре-диалекта-половина-всех-ошибок">7. Четыре диалекта — половина всех ошибок</a>
+    <a href="#рецепты">8. Рецепты</a>
+    <a href="#проверки">9. Проверки</a>
+    <a href="#диагностика">10. Диагностика</a>
+    <a href="#политики">11. Политики</a>
+    <a href="#чего-выразить-нельзя">12. Чего выразить нельзя</a>
+    <a href="#готово-это-когда">13. Готово — это когда</a>
+    <a href="#связанное">14. Связанное</a>
+    <a href="index.html">Все страницы →</a>
+  </nav>
+
+  <main>
+    <section id="intro">
+<p>Система — <strong>один JSON-документ</strong>, прошедший <code>RuleSystemSchema</code> и полный loader
+pipeline. Автор не пишет JavaScript; манифест не получает браузерный или
+сетевой API. Встроенная и пользовательская система имеют один контракт: место
+хранения не даёт скрытых возможностей. Всё ниже следует из этого.</p>
+    </section>
+
+    <section id="комплект-и-старшинство">
+<h2>1. Комплект и старшинство</h2>
+
+<p>Читать в этом порядке; при расхождении побеждает верхний.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Файл</th>
+<th>Роль</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>живая схема загрузчика стола</td>
+<td><strong>побеждает всё</strong>: манифест, который её не проходит, комната не принимает</td>
+</tr>
+<tr>
+<td><a href="manifest.html">manifest.html</a></td>
+<td>справочник по каждому полю манифеста</td>
+</tr>
+<tr>
+<td><a href="../action-dsl-reference.json">action-dsl-reference.json</a></td>
+<td>машинный контракт действий и шагов</td>
+</tr>
+<tr>
+<td><a href="../action-guide/glossary.json">glossary.json</a></td>
+<td>термины действий + слой <code>authoring</code></td>
+</tr>
+<tr>
+<td>дайджест ключей встроенных систем в <a href="../action-guide/master-pack.json">master-pack.json</a></td>
+<td>образец формы, не источник правил</td>
+</tr>
+<tr>
+<td>минимальный манифест (раздел «Минимальный манифест» в <a href="manifest.html">manifest.html</a>)</td>
+<td>валидный манифест на один экран — точка старта</td>
+</tr>
+<tr>
+<td>раздел «Язык листа» в <a href="manifest.html">manifest.html</a></td>
+<td>почему DSL устроен так — когда спорно</td>
+</tr>
+<tr>
+<td>эта страница</td>
+<td>процесс, порядок, проверки, диагностика</td>
+</tr>
+</tbody></table></div>
+<p>Поле, которого нет в схеме, <strong>не выдумывается</strong>. Нельзя выразить — так и
+сказать мастеру, предложив ближайшее выразимое.</p>
+<p>Комплект для модели: эта страница, <a href="manifest.html">manifest.html</a>,
+<a href="../action-dsl-reference.json">action-dsl-reference.json</a>,
+<a href="../action-guide/glossary.json">glossary.json</a> и
+<a href="../action-guide/master-pack.json">master-pack.json</a>.</p>
+    </section>
+
+    <section id="два-канала">
+<h2>2. Два канала</h2>
+
+<p><strong>UI <code>/systems</code></strong> — десять страниц (см. таблицу ниже), сохранение по одной,
+после Save полная проверка, предпросмотр черновика, тестовый персонаж.</p>
+<p><strong>MCP / REST с PAT</strong> — <code>systems_list</code>, <code>systems_get</code>, <code>systems_create</code>,
+<code>systems_update</code>, <code>systems_patch_definition</code>, <code>systems_delete</code>, <code>systems_restore</code>,
+<code>systems_clone</code>, <code>systems_members_{list,add,set_role,remove}</code>. Подключение — «Подключение агента» в настройках аккаунта. Нужны capability <code>agent.api.assets</code> и scope <code>systems:read</code> /
+<code>systems:write</code>.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Ответ</th>
+<th>Значит</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PLAN_FORBIDDEN</code></td>
+<td>capability отозвана или тариф понижен — канал закрыт весь</td>
+</tr>
+<tr>
+<td><code>SCOPE_FORBIDDEN</code></td>
+<td>токену не выдан scope</td>
+</tr>
+<tr>
+<td><code>PAT_ENDPOINT_FORBIDDEN</code></td>
+<td>маршрут вне матрицы: комнаты, сцены, аккаунты, биллинг недоступны принципиально</td>
+</tr>
+<tr>
+<td><code>RATE_LIMITED</code></td>
+<td>600 запросов в минуту на токен</td>
+</tr>
+</tbody></table></div>
+<p>Через канал <strong>нет</strong> комнат и сцен: подготовить данные можно, применить — нет,
+и это говорится прямо. После потерянного ответа на запись <strong>не повторять
+вслепую</strong> — идемпотентности нет; сначала <code>systems_get</code>.</p>
+    </section>
+
+    <section id="инварианты-которые-ломают-чаще-всего">
+<h2>3. Инварианты, которые ломают чаще всего</h2>
+
+<ul>
+<li><code>definition</code> — целое. <code>systems_patch_definition</code> <strong>заменяет манифест
+полностью</strong>. Всегда: <code>GET</code> → правка только затронутых путей → <code>PATCH</code> целого →
+<code>GET</code> для сверки. Неизвестные ключи сохраняются как есть.</li>
+<li><code>id</code> системы — долговечная ссылка: за него держатся комнаты, токены,
+сохранённые данные. <strong>Не менять <code>id</code> у системы, которая стояла на столе.</strong>
+Название — свободно.</li>
+<li>Система — одна на комнату, все столы: <code>space[&#39;rule_system_link&#39;]</code> в
+пространстве комнаты (Yjs, <code>getDomainMap(&#39;room&#39;)</code>) — источник истины;
+<code>rooms.rule_system_id</code> в БД — сид новой комнаты и проекция пространства.
+Привязывать через <code>patch_state</code> / <code>patchState</code> мастером или ассистентом;
+копия в <code>world</code> стола — пережиток до 15.10.2026, её никто не читает.</li>
+<li>Ключи полей — имена переменных во всех формулах. Переименовал в одном месте —
+проверь остальные; редактор после Save покажет разрывы, API — нет.</li>
+<li>Новая система — приватная. Видимость, участников, публикацию менять только по
+явной просьбе. Встроенная не правится — только <code>systems_clone</code>.</li>
+</ul>
+    </section>
+
+    <section id="порядок-сборки">
+<h2>4. Порядок сборки</h2>
+
+<p>Зависимости направлены; иначе reference-стадия валит документ на полпути.</p>
+<ol>
+<li><strong>Идентичность</strong> — <code>schemaVersion</code>, стабильный <code>id</code>, <code>name</code>, <code>version</code>, <code>description</code>.</li>
+<li><strong><code>fieldGroups</code></strong> — данные персонажа. Ключи полей = переменные формул.</li>
+<li><strong><code>dataScopes</code></strong> — кто видит и правит. Поле без области — открыто всем.</li>
+<li><strong><code>resources</code></strong> — пары current/max поверх уже объявленных полей. У ресурса,
+который тратят заклинания, приёмы и ход, — род <code>category</code> и круг <code>rank</code>
+(ячейки всех кругов и ячейка договора — один род <code>spell_slot</code>), а словарь
+<code>resourceCategories</code> даёт роду подпись и знак; роды <code>action</code>,
+<code>bonus_action</code>, <code>reaction</code>, <code>movement</code> в словаре включают маркер хода на
+карточке. Без рода реакция и чип траты ресурс не узнают.</li>
+<li><strong><code>derivedFields</code></strong> — чистые формулы, без случайности.</li>
+<li><strong><code>autoModifiers</code></strong> — метки на токене из тех же данных.</li>
+<li><strong><code>conditions</code></strong> — состояния, на которые сошлются действия.</li>
+<li><strong><code>actions</code></strong> (+ <code>actionGroups</code>, <code>bonusCategories</code>).</li>
+<li><strong><code>sheetVariants</code></strong> — раскладка. Layout <strong>не объявляет данные</strong>, только размещает.</li>
+<li><strong><code>vision</code></strong>, <code>entryConventions</code>, <code>catalogs</code>, <code>equipment</code> — по необходимости.</li>
+<li><strong><code>editorMeta._previewSeed</code></strong> — данные предпросмотра; комната их не читает.</li>
+<li><strong><code>migrations</code></strong> — только с подъёмом <code>version</code> и несовместимыми данными.</li>
+</ol>
+<p>Старт: <code>rule-system-minimal.json</code> для новой системы, <code>systems_clone</code>
+встроенной для большой — и вычитание лишнего.</p>
+    </section>
+
+    <section id="загрузка-системы-одним-файлом">
+<h2>5. Загрузка системы одним файлом</h2>
+
+<p>Готовый манифест можно передать мастеру обычным <code>.json</code>-файлом: один объект
+<code>RuleSystemSchema</code>, без обёртки <code>{ definition: ... }</code>. На <code>/systems</code> мастер
+создаёт или открывает свою систему и нажимает <strong>«Загрузить JSON»</strong> в шапке.
+Для встроенной или чужой системы сначала нужна своя копия.</p>
+<p>Файл проходит полный pipeline. Блокирующие ошибки запрещают сохранение;
+сломанные ссылки/формулы и предупреждения показываются перед записью.
+Можно открыть предпросмотр листа. <strong>«Заменить систему»</strong> записывает весь
+манифест, включая имя и удаление отсутствующих разделов; владельцы и доступ
+не меняются. При ошибке сохранения файл остаётся в диалоге для повтора.
+Перед загрузкой нужно сохранить или отменить черновики всех страниц.</p>
+<p><strong>«Скачать JSON»</strong> выгружает сохранённый манифест одним файлом, без черновиков.
+Авторские <code>$comment</code> и <code>editorMeta</code> сохраняются при загрузке и скачивании.</p>
+    </section>
+
+    <section id="десять-документов-редактора">
+<h2>6. Десять документов редактора</h2>
+
+<p>Мастер видит манифест страницами <code>/systems</code>; говорить с ним на этом языке.
+Сохранение страницы заменяет только её ключи.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Страница</th>
+<th>Ключи</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Система</td>
+<td>identity, <code>version</code>, <code>distanceMethod</code>, <code>dicePanel</code>, <code>fct</code></td>
+</tr>
+<tr>
+<td>Поля</td>
+<td><code>fieldGroups</code>, <code>dataScopes</code></td>
+</tr>
+<tr>
+<td>Ресурсы</td>
+<td><code>resources</code></td>
+</tr>
+<tr>
+<td>Вычисляемые</td>
+<td><code>derivedFields</code>, <code>autoModifiers</code></td>
+</tr>
+<tr>
+<td>Действия</td>
+<td><code>actions</code>, <code>actionGroups</code>, <code>conditions</code>, <code>bonusCategories</code></td>
+</tr>
+<tr>
+<td>Листы</td>
+<td><code>sheetVariants</code>, резервный <code>sheetLayout</code></td>
+</tr>
+<tr>
+<td>Зрение</td>
+<td><code>vision</code></td>
+</tr>
+<tr>
+<td>Записи</td>
+<td><code>entryConventions</code>, <code>noteFolders</code></td>
+</tr>
+<tr>
+<td>Справочники</td>
+<td><code>catalogs</code>, <code>timeEvents</code>, <code>slotLists</code>, <code>migrations</code></td>
+</tr>
+<tr>
+<td>Прочее</td>
+<td>всё остальное: <code>abilities</code>, <code>combatPresentation</code>, <code>critRule</code>, <code>initiative</code>, <code>itemRules</code>, <code>damageCascades</code>, <code>stateRules</code>, <code>equipment</code>, <code>fx</code>, <code>editorMeta</code>, устаревшие слоты</td>
+</tr>
+</tbody></table></div>
+<p>Единый список слотов отдаёт <code>systems_get</code> в <code>definition.documents</code>.</p>
+    </section>
+
+    <section id="четыре-диалекта-половина-всех-ошибок">
+<h2>7. Четыре диалекта — половина всех ошибок</h2>
+
+<p>Прежде чем чинить «валидную формулу, которая даёт ноль», определить диалект.</p>
+<ol>
+<li><strong>Formula / Predicate</strong> — <code>derivedFields</code>, условия. Детерминированный,
+тотальный: нет циклов, рекурсии, функций. <code>floor((str - 10) / 2)</code>, <code>hp &lt;= 0</code>,
+<code>contains(&#39;traits&#39;, &#39;flying&#39;)</code>. Синтаксис — внутренние заметки (не опубликованы).</li>
+<li><strong>Dice</strong> — <code>roll</code>-шаги, <code>rollFormula</code>: <code>1d20 + str_mod</code>, <code>4d6kh3</code>, <code>2d20kl1</code>.
+Функции счётного вычислителя сюда не переносятся.</li>
+<li><strong>Action DSL</strong> — шаги <code>roll</code>, <code>save</code>, <code>damage</code>, <code>effect</code>, <code>timedEffect</code>,
+<code>modifyField</code>, <code>consumeResource</code>, <code>restoreResource</code>, <code>prompt</code>, <code>branch</code>,
+<code>chat</code>, <code>capability</code>. Канон — <code>action-dsl-reference.json</code>.</li>
+<li><strong>Sheet layout</strong> — дерево закрытых узлов. Новый тип узла — PR в ядро.</li>
+</ol>
+<p>Шаблоны отображения (<code>{name}</code>, <code>{if hp &lt; max_hp/2 then … else …}</code>) —
+внутренние заметки (не опубликованы); влияют только на показ.</p>
+    </section>
+
+    <section id="рецепты">
+<h2>8. Рецепты</h2>
+
+<p><strong>Вертикальный срез</strong> — поле → derived → показ → действие, которое тратит:</p>
+<pre><code class="language-json">{ &quot;key&quot;: &quot;power&quot;, &quot;type&quot;: &quot;number&quot;, &quot;default&quot;: 10,
+  &quot;derivedKey&quot;: &quot;power_mod&quot;, &quot;derivedFormat&quot;: &quot;{v}&quot;,
+  &quot;rollFormula&quot;: &quot;1d20 + power_mod&quot; }
+</code></pre>
+<pre><code class="language-json">{ &quot;key&quot;: &quot;power_mod&quot;, &quot;formula&quot;: &quot;floor((power - 10) / 2)&quot; }
+</code></pre>
+<p><code>derivedFormat</code> — <code>{v}</code>: лист сам ставит знак числу, <code>+{v}</code> даст «++3».</p>
+<p><strong>Ресурс</strong> — сначала поля <code>focus</code>, <code>focus_max</code>, затем:</p>
+<pre><code class="language-json">{ &quot;key&quot;: &quot;focus&quot;, &quot;currentKey&quot;: &quot;focus&quot;, &quot;maxKey&quot;: &quot;focus_max&quot;,
+  &quot;recharge&quot;: &quot;short-rest&quot;, &quot;visibleTo&quot;: &quot;all&quot;, &quot;displayIn&quot;: [&quot;sheet&quot;] }
+</code></pre>
+<p>На листе появится только через узел <code>resourceBar</code> в раскладке.</p>
+<p><strong>Действие, которое может не состояться</strong> — расход первым шагом:</p>
+<pre><code class="language-json">{ &quot;id&quot;: &quot;power-check&quot;, &quot;usableBy&quot;: &quot;owner&quot;, &quot;steps&quot;: [
+  { &quot;type&quot;: &quot;consumeResource&quot;, &quot;resourceId&quot;: &quot;focus&quot;, &quot;amount&quot;: &quot;1&quot; },
+  { &quot;type&quot;: &quot;roll&quot;, &quot;formula&quot;: &quot;1d20 + power_mod&quot;, &quot;captureAs&quot;: &quot;result&quot; },
+  { &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: { &quot;ru&quot;: &quot;Проверка: {result}&quot; } } ] }
+</code></pre>
+<p><strong>Входные параметры</strong> — только шаг <code>prompt</code>; собирается до первого изменения
+состояния.</p>
+<p><strong>Два листа</strong> — <code>sheetVariants</code> с <code>defaultFor: &quot;player&quot;</code> / <code>&quot;creature&quot;</code>.
+Приоритет: явный выбор на токене → <code>autoWhen</code> → <code>defaultFor</code> → резервный
+<code>sheetLayout</code>. Резерв — не третий вариант; заводить, когда непокрытые токены
+реальны.</p>
+<p><strong>Панель кубов</strong> — <code>dicePanel</code> на «Системе»; формулы проверяются при загрузке;
+<code>hidden: true</code>, если панель не нужна. Справка — <a href="manifest.html">manifest.html</a>
+§ «Панель кубов».</p>
+<p><strong>Подъём версии</strong> — <code>version</code> вверх и <code>migrations</code>; данные сыгранных комнат
+живут дольше манифеста, молчаливое переименование ключа их стирает.</p>
+    </section>
+
+    <section id="проверки">
+<h2>9. Проверки</h2>
+
+<p>Pipeline из восьми стадий: <code>parse → zod → overlay → reference → formula → scope → dag → hook</code>. Любая ошибка — отказ комнаты.</p>
+<ul>
+<li><strong>reference</strong> — ссылка на несуществующий <code>groupId</code>, <code>resourceKey</code>,
+<code>resourceId</code>, <code>conditionId</code>, <code>catalog</code>, <code>vision_profile_id</code>;</li>
+<li><strong>formula</strong> — переменная не среди полей и derived;</li>
+<li><strong>scope</strong> — поле раздаёт данные шире, чем разрешает <code>dataScopes</code>;</li>
+<li><strong>dag</strong> — цикл в derived;</li>
+<li><strong>hook</strong> — legacy; в новой системе не используется.</li>
+</ul>
+<p>Редактор гоняет полный pipeline после каждого Save и показывает ошибки с
+привязкой к документу и строке; API — нет: через канал сверять <code>systems_get</code> после записи. Ответ на запись — не доказательство.</p>
+<p>Предупреждения (комната терпит, автор должен знать): устаревшие слоты
+<code>hooks</code> / <code>sheetHTML</code> / <code>sheetTemplate</code>; ключи <code>_previewSeed.systemData</code>, под
+которые нет поля.</p>
+    </section>
+
+    <section id="диагностика">
+<h2>10. Диагностика</h2>
+
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Симптом</th>
+<th>Причина в девяти случаях из десяти</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Формула «валидна», но 0</td>
+<td>перепутан диалект: dice-функция в derived или наоборот</td>
+</tr>
+<tr>
+<td>Derived не меняется</td>
+<td>опечатка в ключе; переменная не объявлена</td>
+</tr>
+<tr>
+<td>Действия нет у игрока</td>
+<td><code>usableBy</code> не <code>owner</code> либо поле закрыто <code>dataScopes</code></td>
+</tr>
+<tr>
+<td>Игрок видит скрытое</td>
+<td><code>chat</code>/<code>prompt</code> подставляет ключ вне его области</td>
+</tr>
+<tr>
+<td>Предпросмотр показывает старое</td>
+<td>режим «Сохранённое» или черновик не проходит проверку страницы</td>
+</tr>
+<tr>
+<td>«++3» на листе</td>
+<td><code>derivedFormat: &quot;+{v}&quot;</code> — лист ставит знак сам</td>
+</tr>
+<tr>
+<td>Не тот вариант листа</td>
+<td>явный выбор на токене сильнее <code>autoWhen</code> и <code>defaultFor</code></td>
+</tr>
+<tr>
+<td>Зрение «работает» у мастера</td>
+<td>мастерская сцена ничего не доказывает — смотреть видом игрока</td>
+</tr>
+<tr>
+<td>После перезагрузки поехали значения</td>
+<td>подняли <code>version</code> без <code>migrations</code></td>
+</tr>
+<tr>
+<td>Токены потеряли данные</td>
+<td>сменили <code>id</code> системы или ключ поля без миграции</td>
+</tr>
+<tr>
+<td>Комната не подключает</td>
+<td>ошибка pipeline; в редакторе — красная панель под футером</td>
+</tr>
+</tbody></table></div>
+    </section>
+
+    <section id="политики">
+<h2>11. Политики</h2>
+
+<ul>
+<li>Работать с той системой, которую назвал мастер; при неясности — <code>scope=mine</code>
+и спросить. <code>myRole</code> проверять: общий доступ ≠ право переписывать.</li>
+<li>Сохранять неизвестные ключи; не выдумывать <code>systemData</code>, URL медиа, узлы layout.</li>
+<li>Перед массовой записью — назвать план и количества.</li>
+<li>Спрашивать перед: удалением, публичной видимостью, составом участников,
+переименованием любого <code>id</code>, за который могут держаться токены.</li>
+<li>Каждая выдача заканчивается списком допущений и непроверенных мест.</li>
+</ul>
+    </section>
+
+    <section id="чего-выразить-нельзя">
+<h2>12. Чего выразить нельзя</h2>
+
+<p>Честное «нельзя» дешевле трёх обходов: циклы, рекурсия, функции, JS-хуки как
+escape-hatch; новые типы узлов раскладки и шагов; комнаты, сцены, токены, файлы через канал; программируемая
+инициатива (внутренние заметки (не опубликованы) о границах DSL).</p>
+    </section>
+
+    <section id="готово-это-когда">
+<h2>13. Готово — это когда</h2>
+
+<ul>
+<li>полный pipeline без ошибок; панель предупреждений понята;</li>
+<li>в предпросмотре — обе темы, оба языка, Master / Owner / Other, каждый вариант;</li>
+<li>на столе: Owner правит только разрешённое, Other не видит скрытого ни в листе,
+ни в тексте действия или чата;</li>
+<li>действие различает нехватку ресурса, промах, успешный save, разные цели;</li>
+<li>после перезагрузки значения не меняются сами;</li>
+<li>мастеру перечислены: id системы, что изменено, что не закрыто.</li>
+</ul>
+    </section>
+
+    <section id="связанное">
+<h2>14. Связанное</h2>
+
+<p>внутренние заметки (не опубликованы) — тот же маршрут для человека ·
+Пользовательская статья о сборке системы — на странице «Обучение» сайта.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Ролебаза · Страница собрана из источников репозитория скриптом сборки; править вручную нельзя. При расхождении прозы с машинным контрактом истинен контракт.
+</footer>
+</body>
+</html>

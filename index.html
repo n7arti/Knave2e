@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try{var vt=new URLSearchParams(location.search).get('theme')||sessionStorage.getItem('vtt_theme_effective')||localStorage.getItem('vtt_theme');if(vt==='light'||vt==='dark'||vt==='arcane'||vt==='parchment')document.documentElement.setAttribute('data-theme',vt);}catch(e){}</script>
+  <title>Документация для подключённого агента — Ролебаза, документация для агента</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4efe5;
+      --paper: #fffaf1;
+      --ink: #241f19;
+      --muted: #6d6255;
+      --line: #d9ccb8;
+      --accent: #9b5a20;
+      --accent-soft: #f2dfc5;
+      --code: #211e1a;
+      --code-ink: #f8ecd9;
+      --good: #27653a;
+      --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(54, 38, 20, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        --bg: #171411;
+        --paper: #211d19;
+        --ink: #f4e8d5;
+        --muted: #bbae9b;
+        --line: #4a4035;
+        --accent: #e0a85e;
+        --accent-soft: #3b2d1c;
+        --code: #100f0d;
+        --code-ink: #f4e5ca;
+        --good: #8ed09c;
+        --warn: #e8a267;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .32);
+      }
+    }
+
+    /* Базовые темы стола: страница подхватывает выбор пользователя Ролебазы
+       (localStorage vtt_theme → data-theme на html). Без data-theme действует
+       автономная схема выше (пергамент + prefers-color-scheme). */
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f5; --paper: #ffffff; --ink: #333333; --muted: #666666;
+      --line: #dddddd; --accent: #4263eb; --accent-soft: #e7f3ff;
+      --code: #1f2430; --code-ink: #e6edf7; --good: #2e7d32; --warn: #b45309;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .10);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #1a1a2e; --paper: #16213e; --ink: #e0e0e0; --muted: #9fa8bb;
+      --line: #2a3a5c; --accent: #748ffc; --accent-soft: #1e2c4f;
+      --code: #111827; --code-ink: #dbe4ff; --good: #6bdb86; --warn: #f0a860;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .35);
+    }
+    :root[data-theme="arcane"] {
+      color-scheme: dark;
+      --bg: #1c1815; --paper: #2e2822; --ink: #f5e6ca; --muted: #a69b8d;
+      --line: #594d3f; --accent: #d4af60; --accent-soft: #3d352c;
+      --code: #26211c; --code-ink: #f0e0be; --good: #7bc98a; --warn: #e0a85e;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+    }
+    :root[data-theme="parchment"] {
+      color-scheme: light;
+      --bg: #e8dcc8; --paper: #faf5ec; --ink: #20150b; --muted: #6b5a45;
+      --line: #d5c3a1; --accent: #af6c28; --accent-soft: #eeddc2;
+      --code: #211e1a; --code-ink: #f8ecd9; --good: #2e7d32; --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(66, 36, 9, .14);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .08em .3em; border-radius: .25em; background: var(--accent-soft); }
+    pre {
+      margin: 1rem 0;
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+      tab-size: 2;
+    }
+    pre code { padding: 0; background: transparent; }
+    header {
+      padding: 5rem max(1.25rem, calc((100% - 1120px) / 2)) 3.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { max-width: 900px; margin: .45rem 0 1rem; font-family: Georgia, serif; font-size: clamp(2.4rem, 6vw, 5.5rem); line-height: .98; }
+    header p { max-width: 760px; font-size: 1.2rem; color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.4rem; margin-top: 1.5rem; }
+    .meta-date { color: var(--muted); }
+    .meta-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .22em; }
+    .meta-link:hover { text-decoration-thickness: 2.5px; }
+    .layout { display: grid; grid-template-columns: 255px minmax(0, 820px); gap: 3rem; max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+    nav { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--paper) 92%, transparent); }
+    nav strong { display: block; margin: 0 0 .6rem; }
+    nav a { display: block; padding: .28rem .2rem; color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    nav .nav-part { margin: .8rem 0 .2rem; color: var(--accent); font-size: .78rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    main { min-width: 0; overflow-wrap: anywhere; }
+    section { scroll-margin-top: 2rem; margin: 0 0 4.5rem; }
+    h2 { margin: 0 0 1rem; font: 700 clamp(1.8rem, 4vw, 2.8rem)/1.1 Georgia, serif; }
+    h3 { margin: 2.2rem 0 .6rem; font-size: 1.25rem; }
+    h4 { margin: 1.4rem 0 .45rem; }
+    p { margin: .65rem 0 1rem; }
+    .lead { font-size: 1.12rem; color: var(--muted); }
+    .card, .callout, details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .card, .callout { padding: 1rem 1.2rem; margin: 1.2rem 0; }
+    .callout { border-left: 5px solid var(--accent); }
+    .callout.good { border-left-color: var(--good); }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.scene { border-left-color: var(--good); }
+    .scene-label { display: block; margin-bottom: .25rem; color: var(--good); font-size: .8rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+    .steps { counter-reset: tutorial-step; }
+    .tutorial-step { position: relative; padding-left: 3.2rem; margin: 2rem 0; }
+    .tutorial-step::before {
+      counter-increment: tutorial-step;
+      content: counter(tutorial-step);
+      position: absolute; left: 0; top: -.1rem;
+      width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+      border-radius: 50%; background: var(--accent); color: var(--paper); font-weight: 800;
+    }
+    figure { margin: 1.5rem 0 2.2rem; }
+    figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); background: #fff; }
+    figure svg { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+    figcaption { margin-top: .55rem; color: var(--muted); font-size: .92rem; }
+    /* Inline SVG diagram parts — colours strictly from theme variables. */
+    .d-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+    .d-zone { fill: color-mix(in srgb, var(--accent-soft) 60%, transparent); stroke: var(--line); stroke-width: 1.2; }
+    .d-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+    .d-good-edge { stroke: var(--good); stroke-width: 1.8; }
+    .d-warn-edge { stroke: var(--warn); stroke-width: 1.8; }
+    .d-text { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+    .d-small { fill: var(--ink); font: 500 13.5px system-ui, sans-serif; }
+    .d-mono { fill: var(--ink); font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .d-muted { fill: var(--muted); font: 12.5px system-ui, sans-serif; }
+    .d-title { fill: var(--accent); font: 700 12.5px system-ui, sans-serif; letter-spacing: .07em; }
+    .d-line { stroke: var(--accent); stroke-width: 2; fill: none; }
+    .d-arrow { fill: var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.7rem; font-size: .94rem; }
+    th, td { padding: .7rem .75rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); }
+    td:first-child { white-space: nowrap; }
+    .table-scroll { max-width: 100%; overflow-x: auto; }
+    .table-scroll table { min-width: 620px; overflow-wrap: normal; }
+    details { margin: .8rem 0; padding: .8rem 1rem; box-shadow: none; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary .when { color: var(--muted); font-weight: 500; }
+    .tag { display: inline-block; margin: .1rem .15rem .1rem 0; padding: .08rem .42rem; border-radius: .35rem; background: var(--accent-soft); font: .82rem ui-monospace, monospace; }
+    .yes { color: var(--good); font-weight: 700; }
+    .json { color: var(--warn); font-weight: 700; }
+    .checklist li { margin: .45rem 0; }
+    .ladder { list-style: none; margin: 1rem 0 1.4rem; padding: 0; }
+    .ladder li { position: relative; margin: .45rem 0; padding: .65rem .85rem .65rem 2.5rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .ladder li::before { content: "?"; position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; }
+    .ladder li.final::before { content: "="; color: var(--good); }
+    .ladder .then { color: var(--muted); }
+    footer { padding: 2rem max(1.25rem, calc((100% - 1120px) / 2)); border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; max-height: none; }
+      .grid { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Ролебаза · документация для подключённого агента</div>
+  <h1>Документация для подключённого агента</h1>
+  <p>Контракт двух каналов, справочник манифеста и процесс сборки системы — всё, что агент читает сам.</p>
+  <div class="meta">
+    <span class="meta-date">Актуально на 2026-10-13</span>
+    <a class="meta-link" href="index.html">Все страницы →</a>
+    <a class="meta-link" href="updates.html">Версии и изменения →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav aria-label="Оглавление">
+    <strong>Оглавление</strong>
+    <a href="#начать-с-задачи">1. Начать с задачи</a>
+    <a href="#канал-ассетов-системы-компендиумы-файлы">2. Канал ассетов: системы, компендиумы, файлы</a>
+    <a href="#канал-комнаты-agent-bridge">3. Канал комнаты: Agent Bridge</a>
+    <a href="index.html">Все страницы →</a>
+  </nav>
+
+  <main>
+    <section id="intro">
+<p>Эти страницы — то, что подключённый ИИ-агент может прочитать сам: контракт
+двух каналов, справочник манифеста системы и процесс сборки. Хэндоффы в
+интерфейсе («Подключить агента» в настройках аккаунта и в меню стола)
+ссылаются именно сюда. Страницы собираются из источников репозитория; при
+расхождении прозы с машинным контрактом истинен контракт.</p>
+    </section>
+
+    <section id="начать-с-задачи">
+<h2>1. Начать с задачи</h2>
+
+<ul>
+<li><a href="updates.html">updates.html</a> — версии гайдов, краткий журнал изменений и
+порядок обновления поведения агента; небольшой маркер — <a href="version.json">version.json</a>.</li>
+<li><a href="getting-started.html">getting-started.html</a> — кто и как начинает работу с агентом:
+игрок, мастер, автор материалов и автор системы; подключение и критерии готовности.</li>
+<li><a href="discovery.html">discovery.html</a> — как пользователю или агенту получить полный
+комплект протоколов, DSL и актуальных данных для своей задачи.</li>
+<li><a href="../action-guide/automation.html">Автоматизация действий</a> — полный практический
+маршрут: ActionDef, формулы, предметы, заряды, доставка и проверка результата.</li>
+</ul>
+    </section>
+
+    <section id="канал-ассетов-системы-компендиумы-файлы">
+<h2>2. Канал ассетов: системы, компендиумы, файлы</h2>
+
+<p>Без браузера, по персональному токену (REST) или через MCP.</p>
+<ul>
+<li><a href="assets.html">assets.html</a> — политика работы и контракт REST: та же
+инструкция, что копируется из настроек аккаунта, без секрета.</li>
+<li><a href="compendiums.html">compendiums.html</a> — загрузка и выгрузка компендиумов:
+JSON-архив, ZIP с медиа и превью, работа с отдельными статьями, права,
+лимиты, примеры запросов и проверка переноса.</li>
+<li><a href="manifest.html">manifest.html</a> — справочник манифеста системы правил: каждый
+ключ <code>definition</code>.</li>
+<li><a href="authoring-process.html">authoring-process.html</a> — как собирать систему
+целиком: порядок, проверки, диагностика, политики, невыразимое.</li>
+<li><a href="../action-dsl-reference.json">/action-dsl-reference.json</a> — машинный
+контракт действий; <a href="../action-guide/master-pack.json">master-pack.json</a> и
+<a href="../action-guide/glossary.json">glossary.json</a> — термины и рецепты.</li>
+</ul>
+    </section>
+
+    <section id="канал-комнаты-agent-bridge">
+<h2>3. Канал комнаты: Agent Bridge</h2>
+
+<p>Нужен открытый мастером стол; команды исполняет его браузер.</p>
+<ul>
+<li><a href="bridge.html">bridge.html</a> — протокол, права, режимы, группы команд.
+Полный каталог команд отдаёт сама команда <code>get_schema</code>.</li>
+<li><a href="scene-setup.html">scene-setup.html</a> — пошаговая постановка сцены: ассеты,
+компендиум, расстановка, сцены (<code>__vpBounds</code>), туман, несколько столов.</li>
+</ul>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Ролебаза · Страница собрана из источников репозитория скриптом сборки; править вручную нельзя. При расхождении прозы с машинным контрактом истинен контракт.
+</footer>
+</body>
+</html>

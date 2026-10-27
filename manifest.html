@@ -1,0 +1,3171 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try{var vt=new URLSearchParams(location.search).get('theme')||sessionStorage.getItem('vtt_theme_effective')||localStorage.getItem('vtt_theme');if(vt==='light'||vt==='dark'||vt==='arcane'||vt==='parchment')document.documentElement.setAttribute('data-theme',vt);}catch(e){}</script>
+  <title>Rule system manifest reference — Ролебаза, документация для агента</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4efe5;
+      --paper: #fffaf1;
+      --ink: #241f19;
+      --muted: #6d6255;
+      --line: #d9ccb8;
+      --accent: #9b5a20;
+      --accent-soft: #f2dfc5;
+      --code: #211e1a;
+      --code-ink: #f8ecd9;
+      --good: #27653a;
+      --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(54, 38, 20, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        --bg: #171411;
+        --paper: #211d19;
+        --ink: #f4e8d5;
+        --muted: #bbae9b;
+        --line: #4a4035;
+        --accent: #e0a85e;
+        --accent-soft: #3b2d1c;
+        --code: #100f0d;
+        --code-ink: #f4e5ca;
+        --good: #8ed09c;
+        --warn: #e8a267;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .32);
+      }
+    }
+
+    /* Базовые темы стола: страница подхватывает выбор пользователя Ролебазы
+       (localStorage vtt_theme → data-theme на html). Без data-theme действует
+       автономная схема выше (пергамент + prefers-color-scheme). */
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f5; --paper: #ffffff; --ink: #333333; --muted: #666666;
+      --line: #dddddd; --accent: #4263eb; --accent-soft: #e7f3ff;
+      --code: #1f2430; --code-ink: #e6edf7; --good: #2e7d32; --warn: #b45309;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .10);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #1a1a2e; --paper: #16213e; --ink: #e0e0e0; --muted: #9fa8bb;
+      --line: #2a3a5c; --accent: #748ffc; --accent-soft: #1e2c4f;
+      --code: #111827; --code-ink: #dbe4ff; --good: #6bdb86; --warn: #f0a860;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .35);
+    }
+    :root[data-theme="arcane"] {
+      color-scheme: dark;
+      --bg: #1c1815; --paper: #2e2822; --ink: #f5e6ca; --muted: #a69b8d;
+      --line: #594d3f; --accent: #d4af60; --accent-soft: #3d352c;
+      --code: #26211c; --code-ink: #f0e0be; --good: #7bc98a; --warn: #e0a85e;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+    }
+    :root[data-theme="parchment"] {
+      color-scheme: light;
+      --bg: #e8dcc8; --paper: #faf5ec; --ink: #20150b; --muted: #6b5a45;
+      --line: #d5c3a1; --accent: #af6c28; --accent-soft: #eeddc2;
+      --code: #211e1a; --code-ink: #f8ecd9; --good: #2e7d32; --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(66, 36, 9, .14);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .08em .3em; border-radius: .25em; background: var(--accent-soft); }
+    pre {
+      margin: 1rem 0;
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+      tab-size: 2;
+    }
+    pre code { padding: 0; background: transparent; }
+    header {
+      padding: 5rem max(1.25rem, calc((100% - 1120px) / 2)) 3.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { max-width: 900px; margin: .45rem 0 1rem; font-family: Georgia, serif; font-size: clamp(2.4rem, 6vw, 5.5rem); line-height: .98; }
+    header p { max-width: 760px; font-size: 1.2rem; color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.4rem; margin-top: 1.5rem; }
+    .meta-date { color: var(--muted); }
+    .meta-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .22em; }
+    .meta-link:hover { text-decoration-thickness: 2.5px; }
+    .layout { display: grid; grid-template-columns: 255px minmax(0, 820px); gap: 3rem; max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+    nav { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--paper) 92%, transparent); }
+    nav strong { display: block; margin: 0 0 .6rem; }
+    nav a { display: block; padding: .28rem .2rem; color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    nav .nav-part { margin: .8rem 0 .2rem; color: var(--accent); font-size: .78rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    main { min-width: 0; overflow-wrap: anywhere; }
+    section { scroll-margin-top: 2rem; margin: 0 0 4.5rem; }
+    h2 { margin: 0 0 1rem; font: 700 clamp(1.8rem, 4vw, 2.8rem)/1.1 Georgia, serif; }
+    h3 { margin: 2.2rem 0 .6rem; font-size: 1.25rem; }
+    h4 { margin: 1.4rem 0 .45rem; }
+    p { margin: .65rem 0 1rem; }
+    .lead { font-size: 1.12rem; color: var(--muted); }
+    .card, .callout, details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .card, .callout { padding: 1rem 1.2rem; margin: 1.2rem 0; }
+    .callout { border-left: 5px solid var(--accent); }
+    .callout.good { border-left-color: var(--good); }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.scene { border-left-color: var(--good); }
+    .scene-label { display: block; margin-bottom: .25rem; color: var(--good); font-size: .8rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+    .steps { counter-reset: tutorial-step; }
+    .tutorial-step { position: relative; padding-left: 3.2rem; margin: 2rem 0; }
+    .tutorial-step::before {
+      counter-increment: tutorial-step;
+      content: counter(tutorial-step);
+      position: absolute; left: 0; top: -.1rem;
+      width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+      border-radius: 50%; background: var(--accent); color: var(--paper); font-weight: 800;
+    }
+    figure { margin: 1.5rem 0 2.2rem; }
+    figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); background: #fff; }
+    figure svg { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+    figcaption { margin-top: .55rem; color: var(--muted); font-size: .92rem; }
+    /* Inline SVG diagram parts — colours strictly from theme variables. */
+    .d-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+    .d-zone { fill: color-mix(in srgb, var(--accent-soft) 60%, transparent); stroke: var(--line); stroke-width: 1.2; }
+    .d-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+    .d-good-edge { stroke: var(--good); stroke-width: 1.8; }
+    .d-warn-edge { stroke: var(--warn); stroke-width: 1.8; }
+    .d-text { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+    .d-small { fill: var(--ink); font: 500 13.5px system-ui, sans-serif; }
+    .d-mono { fill: var(--ink); font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .d-muted { fill: var(--muted); font: 12.5px system-ui, sans-serif; }
+    .d-title { fill: var(--accent); font: 700 12.5px system-ui, sans-serif; letter-spacing: .07em; }
+    .d-line { stroke: var(--accent); stroke-width: 2; fill: none; }
+    .d-arrow { fill: var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.7rem; font-size: .94rem; }
+    th, td { padding: .7rem .75rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); }
+    td:first-child { white-space: nowrap; }
+    .table-scroll { max-width: 100%; overflow-x: auto; }
+    .table-scroll table { min-width: 620px; overflow-wrap: normal; }
+    details { margin: .8rem 0; padding: .8rem 1rem; box-shadow: none; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary .when { color: var(--muted); font-weight: 500; }
+    .tag { display: inline-block; margin: .1rem .15rem .1rem 0; padding: .08rem .42rem; border-radius: .35rem; background: var(--accent-soft); font: .82rem ui-monospace, monospace; }
+    .yes { color: var(--good); font-weight: 700; }
+    .json { color: var(--warn); font-weight: 700; }
+    .checklist li { margin: .45rem 0; }
+    .ladder { list-style: none; margin: 1rem 0 1.4rem; padding: 0; }
+    .ladder li { position: relative; margin: .45rem 0; padding: .65rem .85rem .65rem 2.5rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .ladder li::before { content: "?"; position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; }
+    .ladder li.final::before { content: "="; color: var(--good); }
+    .ladder .then { color: var(--muted); }
+    footer { padding: 2rem max(1.25rem, calc((100% - 1120px) / 2)); border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; max-height: none; }
+      .grid { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Ролебаза · документация для подключённого агента</div>
+  <h1>Rule system manifest reference</h1>
+  <p>Every key of a system definition: fields, derived values, resources, states, sheets, dice, actions.</p>
+  <div class="meta">
+    <span class="meta-date">Актуально на 2026-10-13</span>
+    <a class="meta-link" href="index.html">Все страницы →</a>
+    <a class="meta-link" href="updates.html">Версии и изменения →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav aria-label="Оглавление">
+    <strong>Оглавление</strong>
+    <a href="#manifest-top-level-shape">1. Manifest top-level shape</a>
+    <a href="#identity">2. Identity</a>
+    <a href="#i18nlabel">3. I18nLabel</a>
+    <a href="#field-groups-fields">4. Field groups &amp; fields</a>
+    <a href="#resources">5. Resources</a>
+    <a href="#derived-fields-formula-language">6. Derived fields — formula language</a>
+    <a href="#auto-modifiers-visual-badges-from-system-data">7. Auto-modifiers — visual badges from system data</a>
+    <a href="#data-scopes-field-level-permissions">8. Data scopes — field-level permissions</a>
+    <a href="#articles-for-fields-and-sections">9. Articles for fields and sections</a>
+    <a href="#catalogs-shared-closed-vocabularies">10. Catalogs — shared closed vocabularies</a>
+    <a href="#combat-vocabulary-and-defaults">11. Combat vocabulary and defaults</a>
+    <a href="#item-contributions-damage-cascades-and-state-rules">12. Item contributions, damage cascades, and state rules</a>
+    <a href="#actions-generic-flow-primitives">13. Actions — generic flow primitives</a>
+    <a href="#conditions-status-effects">14. Conditions — status effects</a>
+    <a href="#note-folders">15. Note folders</a>
+    <a href="#sheet-layout">16. Sheet layout</a>
+    <a href="#sheet-variants">17. Sheet variants</a>
+    <a href="#vision-catalogs">18. Vision catalogs</a>
+    <a href="#distance-method">19. Distance method</a>
+    <a href="#entry-conventions">20. Entry conventions</a>
+    <a href="#equipment-slots">21. Equipment slots</a>
+    <a href="#порядок-результатов-кубиков">22. Порядок результатов кубиков</a>
+    <a href="#панель-кубов">23. Панель кубов</a>
+    <a href="#floating-combat-text">24. Floating combat text</a>
+    <a href="#system-fx-defaults">25. System FX defaults</a>
+    <a href="#imperative-hook-references-deprecated">26. Imperative hook references (deprecated)</a>
+    <a href="#migrations">27. Migrations</a>
+    <a href="#time-event-catalog">28. Time-event catalog</a>
+    <a href="#preview-fixture-metadata">29. Preview fixture metadata</a>
+    <a href="#overlay-homebrew-on-top-of-base">30. Overlay (homebrew on top of base)</a>
+    <a href="#bonus-categories">31. Bonus categories</a>
+    <a href="#validation-pipeline-what-happens-on-load">32. Validation pipeline (what happens on load)</a>
+    <a href="#quick-reference-writing-a-new-system">33. Quick reference: writing a new system</a>
+    <a href="index.html">Все страницы →</a>
+  </nav>
+
+  <main>
+    <section id="intro">
+<blockquote>
+<p>Reference for human and AI authors writing a <code>RuleSystemSchema</code> manifest.</p>
+<p><strong>For design rationale (why fields are shaped this way, why hooks are
+deprecated, why the layout vocabulary is closed, etc.) see
+the engine design notes (not published; ask the user if a rationale
+matters).</strong> This document is a reference manual; it
+describes <em>what</em> the schema looks like, not <em>why</em>.</p>
+<p>Companion: machine-readable JSON Schema via <code>exportManifestJsonSchema()</code>
+(the live validation schema of the product). For a practical product route,
+start with <a href="authoring-process.html">the authoring process</a>.</p>
+<p>Last update: 2026-08-20 — reconciled the manual with the live schema and
+authoring UI: catalogs, action groups, initiative, combat defaults, item and
+damage rules, equipment, FX, slot lists, preview metadata, current field /
+resource variants, sheet variants and vision.</p>
+</blockquote>
+<p>A rule system is a single JSON document validated by Zod (<code>RuleSystemSchema</code>).
+It declares: fields &amp; groups, resources, derived formulas, auto-modifiers,
+data-scope permissions, catalogs, actions, conditions, combat defaults,
+equipment, sheet variants and layout, vision, dice/FX presentation, and
+migrations. Once loaded through the pipeline (<code>loadBuiltinSystem(id)</code> or
+<code>loadManifest(raw)</code>), the manifest is the <strong>only</strong> source of truth for
+that system — runtime reads come from here.</p>
+    </section>
+
+    <section id="manifest-top-level-shape">
+<h2>1. Manifest top-level shape</h2>
+
+<pre><code class="language-jsonc">{
+  &quot;schemaVersion&quot;: &quot;1.0&quot;,         // engine meta-schema version (fixed)
+  &quot;id&quot;: &quot;dnd5e-srd&quot;,              // stable system id
+  &quot;name&quot;: { &quot;en&quot;: &quot;...&quot;, &quot;ru&quot;: &quot;...&quot; },
+  &quot;version&quot;: &quot;1.0&quot;,               // your system&#39;s content version (semver)
+  &quot;description&quot;: { &quot;en&quot;: &quot;...&quot; },
+
+  // Optional overlay metadata (homebrew built on top of another system)
+  &quot;baseSystemId&quot;: &quot;dnd5e-srd&quot;,
+  &quot;expectedBaseSystemVersion&quot;: &quot;1.0&quot;,
+
+  // Content
+  &quot;fieldGroups&quot;:       [...],
+  &quot;resources&quot;:         [...],
+  &quot;derivedFields&quot;:     [...],
+  &quot;autoModifiers&quot;:     [...],
+  &quot;slotLists&quot;:         { ... },
+  &quot;dataScopes&quot;:        [...],
+  &quot;catalogs&quot;:          [...],
+  &quot;entryConventions&quot;:  { ... },
+  &quot;noteFolders&quot;:       [...],
+  &quot;actions&quot;:           [...],
+  &quot;actionGroups&quot;:      [...],
+  &quot;conditions&quot;:        [...],
+  &quot;bonusCategories&quot;:   [...],
+  &quot;abilities&quot;:         [...],
+  &quot;combatPresentation&quot;: { ... },
+  &quot;critRule&quot;:          { ... },
+  &quot;initiative&quot;:        { ... },
+  &quot;itemRules&quot;:         [...],
+  &quot;damageCascades&quot;:    [...],
+  &quot;stateRules&quot;:        [...],
+  &quot;timeEvents&quot;:        [...],
+  &quot;equipment&quot;:         { ... },
+
+  // Presentation
+  &quot;sheetLayout&quot;:    { ... },       // declarative fallback layout
+  &quot;sheetVariants&quot;:  [...],         // player / creature / manual layouts
+  &quot;vision&quot;:         { ... },
+  &quot;distanceMethod&quot;: &quot;alternating&quot;,
+  &quot;dicePanel&quot;:      { ... },
+  &quot;diceResultOrder&quot;: &quot;desc&quot;,       // &quot;asc&quot; | &quot;desc&quot; | &quot;none&quot;; default &quot;desc&quot;
+  &quot;fct&quot;:            { ... },
+  &quot;fx&quot;:             { ... },
+
+  // Legacy presentation — accepted, do not use for new systems
+  &quot;sheetHTML&quot;:     &quot;...&quot;,
+  &quot;sheetTemplate&quot;: &quot;...&quot;,
+
+  // Imperative escape hatches (refs by name)
+  &quot;hooks&quot;:      { &quot;computeDerivedHook&quot;: &quot;&lt;system-id&gt;&quot; },
+
+  // Versioning + editor-only fixture data
+  &quot;migrations&quot;: [...],
+  &quot;editorMeta&quot;: { &quot;_previewSeed&quot;: { &quot;systemData&quot;: {}, &quot;entries&quot;: [] } }
+}
+</code></pre>
+<p>The per-document <code>/systems</code> UI currently edits the common slots through ten
+pages. Some valid advanced slots (<code>critRule</code>, <code>initiative</code>, <code>itemRules</code>,
+<code>damageCascades</code>, <code>stateRules</code>, <code>equipment</code>, <code>fx</code>, <code>editorMeta</code>) have no
+dedicated page yet. The schema accepts them and runtime consumers use them;
+the absence of a page is an authoring-UI limitation, not a different manifest
+format.</p>
+<h3>Notes: <code>&quot;$comment&quot;</code></h3>
+<p>JSON has no comments. A note — a reminder for later, or a block set aside —
+is a <code>&quot;$comment&quot;</code> key in <strong>any object</strong> of the manifest, with any value:</p>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;resourceList&quot;,
+  &quot;$comment&quot;: &quot;Классовые ресурсы; Метку охотника вернуть, когда появится следопыт&quot;,
+  &quot;include&quot;: [&quot;laying_hands&quot;, &quot;inspiration_bard&quot;],
+  &quot;presentation&quot;: &quot;grid&quot;
+}
+</code></pre>
+<p>The loader and the <code>/systems</code> editor drop every <code>$comment</code> before checking the
+shape, so the key never fails a strict schema and no part of the system reads
+it; the stored definition keeps it, and the editor&#39;s JSON views save it back.
+A block set aside goes in as a value — <code>&quot;$comment&quot;: { &quot;type&quot;: &quot;heading&quot;, &quot;text&quot;: &quot;…&quot; }</code>.
+Only the exact name <code>$comment</code> is a note; any other unknown key is not.</p>
+<p>Notes belong to the manifest. The <code>/systems</code> action editor checks an action
+without its notes. Its JSON view keeps every note. The structured form keeps
+the notes of what it edits in place (the action, step fields, the cost, the
+icon); the crit, repetition, duration and animation settings rebuild their
+objects, and notes inside those go with an edit there (as does clearing the
+icon&#39;s glyph). Applying a template replaces the
+whole action, notes included. An action at the table — its JSON editor, a
+token&#39;s actions — and a compendium entry refuse notes.</p>
+    </section>
+
+    <section id="identity">
+<h2>2. Identity</h2>
+
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>schemaVersion</code></td>
+<td><code>&#39;1.0&#39; | &#39;1.1&#39; | &#39;1.2&#39; | &#39;1.3&#39;</code></td>
+<td>Engine-version of the manifest shape itself. <code>1.3</code> adds semantic <code>entryList</code> presentation and narrow legacy projections for versionless entry data.</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>EntityId</td>
+<td>1–64 letters (any language), digits, <code>_</code> or <code>-</code>; not starting with <code>_</code>, not digits only, no dots or spaces. Stable across versions.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>I18nLabel</code></td>
+<td><code>string | { en, ru, ... }</code>. Non-empty record. The system&#39;s only name: the systems sidebar, the room&#39;s system picker, the catalog and the editor header all show it (since 2026-10-01; the server keeps a one-language copy, ru → en, for search). A copy is named <code>&lt;name&gt; (by &lt;copier&gt;)</code>.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>semver <code>&#39;MAJOR.MINOR(.PATCH)?&#39;</code></td>
+<td>Content version. Bumped when fields/actions/conditions change.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>I18nLabel?</code></td>
+<td>Long-form for catalog. The system&#39;s only description, like <code>name</code>.</td>
+</tr>
+</tbody></table></div>
+    </section>
+
+    <section id="i18nlabel">
+<h2>3. I18nLabel</h2>
+
+<p>Either a plain string (system-implicit locale) or a record <code>{ &lt;localeCode&gt;: string }</code>:</p>
+<pre><code class="language-jsonc">&quot;label&quot;: &quot;STR&quot;
+&quot;label&quot;: { &quot;en&quot;: &quot;Strength&quot;, &quot;ru&quot;: &quot;Сила&quot; }
+&quot;label&quot;: { &quot;en-US&quot;: &quot;Color&quot;, &quot;en-GB&quot;: &quot;Colour&quot;, &quot;ru&quot;: &quot;Цвет&quot; }
+</code></pre>
+<p>Locale codes: <code>[a-z]{2,3}</code> optionally <code>-</code> and <code>[A-Z]{2}</code>. Empty record rejected.</p>
+    </section>
+
+    <section id="field-groups-fields">
+<h2>4. Field groups &amp; fields</h2>
+
+<pre><code class="language-jsonc">&quot;fieldGroups&quot;: [
+  {
+    &quot;id&quot;: &quot;abilities&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Abilities&quot;, &quot;ru&quot;: &quot;Характеристики&quot; },
+    &quot;layout&quot;: &quot;grid-6&quot;,            // &#39;vertical&#39; | &#39;inline&#39; | &#39;grid-3&#39; | &#39;grid-6&#39; | &#39;skill-list&#39; | &#39;table&#39;
+    &quot;scopeId&quot;: &quot;abilities&quot;,         // optional ref to dataScopes[].id
+    &quot;fields&quot;: [...]
+  }
+]
+</code></pre>
+<h3>Field types</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th><code>type</code></th>
+<th>Stored as</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>number</code></td>
+<td>number</td>
+<td>Honours <code>min</code>, <code>max</code>.</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>string</td>
+<td>Single-line.</td>
+</tr>
+<tr>
+<td><code>textarea</code></td>
+<td>string</td>
+<td>Multi-line.</td>
+</tr>
+<tr>
+<td><code>tag-list</code></td>
+<td><code>string[]</code></td>
+<td>Catalog-backed multi-select or free-form tags.</td>
+</tr>
+</tbody></table></div>
+<p><code>text</code> + <code>catalogId</code> renders a single-select; <code>tag-list</code> + <code>catalogId</code> renders
+a multi-select. <code>allowCustom: true</code> permits values outside the catalog. Input
+modes are presentation variants over these storage shapes, not new field types.
+A <code>text</code> field may also take its value from a compendium article — see
+<strong>Articles for fields and sections</strong>.</p>
+<h3>Field shape</h3>
+<pre><code class="language-jsonc">{
+  &quot;key&quot;: &quot;str&quot;,                   // DataKey: [a-z][a-z0-9_]{0,63}
+  &quot;label&quot;: { &quot;en&quot;: &quot;Strength&quot; },
+  &quot;description&quot;: { &quot;en&quot;: &quot;Physical power.&quot; }, // optional help text
+  &quot;shortLabel&quot;: &quot;STR&quot;,            // for compact / grid layouts
+  &quot;type&quot;: &quot;number&quot;,
+  &quot;default&quot;: 10,
+  &quot;min&quot;: 1,
+  &quot;max&quot;: 30,
+  &quot;width&quot;: &quot;half&quot;,                // &#39;full&#39; | &#39;half&#39; | &#39;third&#39;
+  &quot;derivedKey&quot;: &quot;str_mod&quot;,        // ref to derivedFields[].key
+  &quot;derivedFormat&quot;: &quot;{v}&quot;,         // the sheet signs numbers itself: &#39;{v}&#39; → &quot;+3&quot;; &#39;+{v}&#39; → &quot;++3&quot;
+  &quot;rollFormula&quot;: &quot;1d20+str_mod&quot;,
+  &quot;rollLabel&quot;: { &quot;en&quot;: &quot;STR Check&quot; },
+  &quot;inputMode&quot;: &quot;dot-track&quot;,       // see inputMode list below
+  &quot;tags&quot;: [&quot;core&quot;],               // free-form tags for ordering/filtering
+  &quot;articles&quot;: { &quot;tags&quot;: [[&quot;Тип: Класс&quot;, &quot;Type: Class&quot;]] } // text only: see Articles for fields and sections
+}
+</code></pre>
+<h4>A number field&#39;s value may be a formula; its total may be pinned</h4>
+<p>A <code>number</code> field&#39;s <code>default</code> — and the value stored on a token — may be a
+formula string instead of a number: <code>&quot;default&quot;: &quot;10 + dex_mod&quot;</code> gives an
+unarmoured AC that follows Dexterity. It is computed by the same engine as an
+effect&#39;s value (no dice; names the sheet does not know make it not apply) and
+is the field&#39;s BASE: effects stack on top, a «replace base» effect (armour)
+replaces it while active. A formula naming its own field reads nothing there.</p>
+<p>A token&#39;s total may be pinned: <code>token_&lt;id&gt;_overrides[key]</code> — a number or a
+formula — wins over the base and every effect; in a formula, the field&#39;s own
+name reads the base with effects. On the sheet both are written from the
+field: Основа / Итог while it is focused, «Зафиксировать» / «Снять» in its
+breakdown card. Through the bridge both are <code>patch_state</code> writes to
+<code>token_&lt;id&gt;_system</code> and <code>token_&lt;id&gt;_overrides</code>; remove a pin by writing the
+overrides object without the key.</p>
+<h4>Сравнение в <code>rollFormula</code> считает кубы, не сумму</h4>
+<p><code>4d6&gt;3</code> — это «сколько костей выше 3», то есть пул успехов, а не «сумма больше
+трёх». На d6 запись <code>4d6&gt;8</code> даёт ноль всегда. Сумму сравнивает группа:
+<code>{4d6}&gt;8</code> вернёт 1 или 0. Скобки — арифметика, <code>(4d6)&gt;3</code> парсер не принимает;
+пробелы вокруг сравнения ломают разбор.</p>
+<p>Если системе нужен итог и решение по нему — сравнение выносится из формулы: в
+действии это ветка по <code>result</code>, у атаки <code>roll.compare</code>, у проверки её порог.
+Подробнее — the engine design notes (not published), раздел «Сравнение в формуле».</p>
+<h4>inputMode</h4>
+<ul>
+<li><code>&#39;default&#39;</code> — plain input matching <code>type</code>.</li>
+<li><code>&#39;checkbox-list&#39;</code> — catalog-backed <code>tag-list</code> as one checkbox row per entry.</li>
+<li><code>&#39;dot-track&#39;</code> — a single glyph cell that cycles a configurable palette
+(<code>glyphs</code>, default <code>[&#39;○&#39;,&#39;●&#39;,&#39;◆&#39;]</code>). The value indexes into the palette;
+a value past it (but within <code>max</code>) shows as a plain number. Use for
+enum-like ladders — D&amp;D proficiency (none / proficient / expertise).</li>
+<li><code>&#39;linear-dots&#39;</code> — a linear row of <code>field.max</code> round dots, first <code>value</code>
+filled. Use for dot ratings — WoD attributes (max=5), Blades action
+ratings (max=4). Click a dot to set the rating; click the last filled dot
+to drop by one.</li>
+<li><code>&#39;segmented-track&#39;</code> — like <code>linear-dots</code> but squares, for tally-of-slots
+trackers (D&amp;D death saves, ammo segments, charges).</li>
+<li><code>&#39;status-track&#39;</code> — a row of <code>max</code> cells, each independently cycling a
+named-glyph palette (<code>statuses</code>). Use for WoD health / willpower (empty /
+superficial / aggravated / full). Stored as <code>string[]</code> of status names
+(declare <code>type: &#39;tag-list&#39;</code>); the engine exposes per-status counts to
+formulas as <code>&lt;fieldKey&gt;_&lt;status&gt;</code> (see <code>statuses</code> below).</li>
+<li><code>&#39;readonly-derived&#39;</code> — shows the derived value only. Use for
+computed displays (proficiency bonus, ability modifiers, calculated AC).</li>
+<li><code>&#39;scale-track&#39;</code> — compact scale/rating presentation supported by the current
+field renderer; keep numeric bounds explicit.</li>
+</ul>
+<p><code>dot-track</code> / <code>linear-dots</code> / <code>segmented-track</code> store an integer <code>0..max</code>;
+<code>status-track</code> stores a <code>string[]</code>. Step / roll semantics come from
+<code>derivedFields</code> that consume the value(s), not from the input mode.</p>
+<h4>glyphs</h4>
+<p>Palette for <code>inputMode: &#39;dot-track&#39;</code>, e.g. <code>[&quot;○&quot;,&quot;●&quot;,&quot;◆&quot;]</code>. The value indexes
+into the array; beyond it the value renders as a plain number. Defaults to
+<code>[&quot;○&quot;,&quot;●&quot;,&quot;◆&quot;]</code>. Ignored by other input modes.</p>
+<h4>statuses</h4>
+<p>Named-glyph palette for <code>inputMode: &#39;status-track&#39;</code>. Each cell cycles through
+the list on click; the first entry is the empty/default cell.</p>
+<pre><code class="language-jsonc">&quot;type&quot;: &quot;tag-list&quot;,              // status-track stores string[]
+&quot;inputMode&quot;: &quot;status-track&quot;,
+&quot;max&quot;: 10,
+&quot;statuses&quot;: [
+  { &quot;glyph&quot;: &quot;□&quot;, &quot;status&quot;: &quot;empty&quot;,       &quot;label&quot;: { &quot;en&quot;: &quot;Available&quot; } },
+  { &quot;glyph&quot;: &quot;/&quot;, &quot;status&quot;: &quot;superficial&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Superficial&quot; } },
+  { &quot;glyph&quot;: &quot;X&quot;, &quot;status&quot;: &quot;aggravated&quot;,  &quot;label&quot;: { &quot;en&quot;: &quot;Aggravated&quot; } },
+  { &quot;glyph&quot;: &quot;■&quot;, &quot;status&quot;: &quot;full&quot;,        &quot;label&quot;: { &quot;en&quot;: &quot;Unavailable&quot; } }
+]
+</code></pre>
+<p><code>status</code> must be identifier-safe (<code>[a-z][a-z0-9_]*</code>) and unique within the
+field — it becomes the formula key <code>&lt;fieldKey&gt;_&lt;status&gt;</code>. For a field <code>health</code>
+the engine puts <code>health_empty</code>, <code>health_superficial</code>, <code>health_aggravated</code>,
+<code>health_full</code> (counts) into formula scope, always present (0 when absent):</p>
+<pre><code class="language-jsonc">&quot;derivedFields&quot;: [
+  { &quot;key&quot;: &quot;is_dead&quot;, &quot;formula&quot;: &quot;health_aggravated &gt;= health_max&quot; }
+]
+</code></pre>
+<h4>sort (for status-track)</h4>
+<p>Optional. <code>&#39;none&#39;</code> (default) keeps cells in the order the user clicked them.
+<code>&#39;left&#39;</code> / <code>&#39;right&#39;</code> press the filled cells against that edge, grouped by their
+position in <code>statuses</code>: the last-declared status sits at the edge, the empty
+one (first in <code>statuses</code>) fills the far side.</p>
+<pre><code class="language-jsonc">&quot;statuses&quot;: [ /* empty, superficial, aggravated, full */ ],
+&quot;sort&quot;: &quot;left&quot;    // → ■ ■ ■ ■ X / / □ □ □   (&quot;right&quot; mirrors it)
+</code></pre>
+<p>The pre-rename <code>&#39;start&#39;</code> / <code>&#39;end&#39;</code> still load: they named where the <em>empty</em>
+cells went and are rewritten to <code>&#39;right&#39;</code> / <code>&#39;left&#39;</code>, which keeps the sheet
+looking the same.</p>
+<p>Sorting is order-only — it never changes the per-status counts, so the
+<code>&lt;key&gt;_&lt;status&gt;</code> formula keys are identical regardless of <code>sort</code>.</p>
+<h4>tags</h4>
+<p>Free-form, system-defined. Inspector ordering, filtering, layout-DSL
+node selection all consume tags. Common values: <code>&#39;core&#39;</code>, <code>&#39;combat&#39;</code>,
+<code>&#39;reference&#39;</code>, <code>&#39;narrative&#39;</code>, <code>&#39;gm-only&#39;</code>. Engine doesn&#39;t interpret —
+your system chooses.</p>
+    </section>
+
+    <section id="resources">
+<h2>5. Resources</h2>
+
+<p>Resources are either scalar current/max pools (HP, mana, stress, spell slots)
+or 2–3-stage cascades. The layout-DSL <code>resourceBar</code> node consumes the same
+declaration as action steps and automatic refresh.</p>
+<pre><code class="language-jsonc">&quot;resources&quot;: [
+  {
+    &quot;key&quot;: &quot;hp&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;HP&quot; },
+    &quot;color&quot;: &quot;#e74c3c&quot;,
+    &quot;currentKey&quot;: &quot;hp&quot;,
+    &quot;maxKey&quot;: &quot;hp_max&quot;,
+    &quot;maxDerivedKey&quot;: &quot;hp_max_calc&quot;, // formula max until manually overridden
+    &quot;tempKey&quot;: &quot;hp_temp&quot;,         // optional bonus pool
+    &quot;recharge&quot;: &quot;long-rest&quot;,
+    &quot;refresh&quot;: [{ &quot;trigger&quot;: &quot;combat-end&quot;, &quot;amount&quot;: &quot;full&quot; }],
+    &quot;visibleTo&quot;: &quot;all&quot;,
+    &quot;displayIn&quot;: [&quot;header&quot;, &quot;sheet&quot;]
+  }
+]
+</code></pre>
+<p>For <code>kind: &quot;scalar&quot;</code> (the default), <code>currentKey</code> and <code>maxKey</code> are required.
+<code>maxDerivedKey</code> references a derived field: the computed maximum is used while
+<code>maxKey</code> is empty; writing a max creates an explicit override.</p>
+<p>A cascade does not declare top-level current/max/temp keys:</p>
+<pre><code class="language-jsonc">{
+  &quot;key&quot;: &quot;army&quot;,
+  &quot;label&quot;: { &quot;en&quot;: &quot;Army&quot; },
+  &quot;kind&quot;: &quot;cascade&quot;,
+  &quot;stages&quot;: [
+    { &quot;currentKey&quot;: &quot;front&quot;,   &quot;maxFormula&quot;: &quot;front_max&quot;,   &quot;onEmpty&quot;: &quot;cascade&quot; },
+    { &quot;currentKey&quot;: &quot;reserve&quot;, &quot;maxFormula&quot;: &quot;reserve_max&quot;, &quot;onEmpty&quot;: &quot;fail&quot; }
+  ]
+}
+</code></pre>
+<p><code>refresh[]</code> is the runtime cadence (<code>turn-start</code>, <code>turn-end</code>, <code>round-start</code>,
+<code>round-end</code>, <code>short-rest</code>, <code>long-rest</code>, <code>combat-start</code>, <code>combat-end</code>) and may
+restore <code>full</code> or a formula amount. It is distinct from <code>recharge</code>: recharge
+groups resources for an explicit <code>restoreAllOf</code> action.</p>
+<h3><code>recharge</code> policy</h3>
+<p>Closed enum: <code>&#39;manual&#39; | &#39;short-rest&#39; | &#39;long-rest&#39; | &#39;dawn&#39; | &#39;turn&#39;</code>.
+Default <code>&#39;manual&#39;</code> — resource only moves via explicit
+consume/restoreResource steps. Other values mark the resource as a
+member of a <strong>recharge group</strong> that <code>restoreResource: { restoreAllOf: … }</code> actions can refill in one step.</p>
+<pre><code class="language-jsonc">{ &quot;type&quot;: &quot;restoreResource&quot;, &quot;restoreAllOf&quot;: &quot;long-rest&quot; }
+</code></pre>
+<p>This is the canonical way to declare D&amp;D <code>long_rest</code>: one step
+restores HP + spell slots 1-9 + hit dice (every resource whose
+<code>recharge</code> matches). Single-resource form (<code>{ resourceId, amount, mode }</code>) still works — XOR with <code>restoreAllOf</code> enforced at load.</p>
+<h3>Kind of resource: <code>category</code>, <code>rank</code>, <code>resourceCategories</code></h3>
+<p>A resource&#39;s key is the name it is stored under; its <strong>kind</strong> is what it
+means. Spell slots of every circle and a warlock&#39;s pact slot are one kind:</p>
+<pre><code class="language-jsonc">&quot;resources&quot;: [
+  { &quot;key&quot;: &quot;spell_slots_3&quot;, &quot;label&quot;: { &quot;ru&quot;: &quot;3 круг&quot; }, &quot;currentKey&quot;: &quot;spell_slots_3_value&quot;,
+    &quot;maxKey&quot;: &quot;spell_slots_3_max&quot;, &quot;category&quot;: &quot;spell_slot&quot;, &quot;rank&quot;: 3 },
+  { &quot;key&quot;: &quot;pact_magic&quot;, &quot;label&quot;: { &quot;ru&quot;: &quot;Магия договора&quot; }, &quot;currentKey&quot;: &quot;pact_magic_value&quot;,
+    &quot;maxKey&quot;: &quot;pact_magic_max&quot;, &quot;category&quot;: &quot;spell_slot&quot;, &quot;rank&quot;: &quot;pact_magic_level&quot; }
+],
+&quot;resourceCategories&quot;: {
+  &quot;spell_slot&quot;: { &quot;label&quot;: { &quot;ru&quot;: &quot;Ячейка заклинаний&quot;, &quot;en&quot;: &quot;Spell slot&quot; }, &quot;icon&quot;: &quot;sparkles&quot; },
+  &quot;action&quot;:       { &quot;label&quot;: { &quot;ru&quot;: &quot;Действие&quot;, &quot;en&quot;: &quot;Action&quot; } },
+  &quot;bonus_action&quot;: { &quot;label&quot;: { &quot;ru&quot;: &quot;Бонусное действие&quot;, &quot;en&quot;: &quot;Bonus action&quot; } },
+  &quot;reaction&quot;:     { &quot;label&quot;: { &quot;ru&quot;: &quot;Реакция&quot;, &quot;en&quot;: &quot;Reaction&quot; } }
+}
+</code></pre>
+<ul>
+<li><code>category</code> — a <code>DataKey</code> (lowercase Latin, digits, <code>_</code>): a reaction names
+the kind as a string literal and compares it character by character, so a
+stray capital or space would silently never match.</li>
+<li><code>rank</code> — the rank inside the kind: an integer, or a formula over the sheet
+of whoever owns the resource (the pact slot&#39;s circle grows with the
+warlock). The loader checks the formula like any resource formula.</li>
+<li>Entry resources (<code>entryConventions.&lt;type&gt;.resources[]</code>) and table
+resources (<code>table.resources[]</code>) take the same two fields.</li>
+<li><code>resourceCategories</code> — the system&#39;s dictionary of kinds: a label for the
+spend chip&#39;s hint and a Lucide icon for the chip. The dictionary is open:
+name your own kinds. Use the conventional names where the kind is the
+same — <code>spell_slot</code>, <code>ki</code>, <code>sorcery_point</code> — so reactions from shared
+compendiums work across systems.</li>
+<li>Four kinds are the <strong>turn economy</strong>: <code>action</code>, <code>bonus_action</code>, <code>reaction</code>,
+<code>movement</code>. Declaring one of them in <code>resourceCategories</code> turns on the turn
+marker on action cards in combat: the action&#39;s <code>kind</code> (<code>active</code>, <code>bonus</code>,
+<code>reactive-*</code>) or an explicit <code>cost</code> of a turn resource of that kind. Their
+shape and colour belong to the platform (green circle — action, orange
+triangle — bonus action, violet diamond — reaction, yellow footprints —
+movement); the dictionary gives only the label. A system without turn
+economy declares none of them and gets no marker.</li>
+<li>No colour per kind: on the chip, colour means the state of a spend
+(returned, waived, short), never its kind.</li>
+</ul>
+    </section>
+
+    <section id="derived-fields-formula-language">
+<h2>6. Derived fields — formula language</h2>
+
+<p>Declarative pure formulas. Evaluated topologically; cycles fail at load.</p>
+<pre><code class="language-jsonc">&quot;derivedFields&quot;: [
+  {
+    &quot;key&quot;: &quot;str_mod&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Strength modifier&quot; },
+    &quot;description&quot;: { &quot;en&quot;: &quot;Modifier derived from the Strength score.&quot; },
+    &quot;formula&quot;: &quot;floor((if(str, str, 10) - 10) / 2)&quot;
+  },
+  {
+    &quot;key&quot;: &quot;save_str&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Strength save bonus&quot; },
+    &quot;description&quot;: { &quot;en&quot;: &quot;Strength modifier plus proficiency when trained.&quot; },
+    &quot;formula&quot;: &quot;str_mod + if(save_str_prof, save_str_prof, 0) * proficiency_bonus&quot;
+  }
+]
+</code></pre>
+<p>The formula language is <strong>total</strong> — no loops, no recursion, terminating
+in all cases. Built-ins: <code>floor / ceil / round / abs / max / min / clamp / sum / len / has / if</code>, plus var-aware <code>contains(fieldName, id)</code> and
+<code>sum_matching(prefix)</code>. References to scalar fields use bare names. A
+<code>tag-list</code> is queried through <code>contains(&#39;field_key&#39;, &#39;entry_id&#39;)</code>, because an
+array does not become a scalar formula value. Dice notation is <strong>not allowed</strong>
+in derived fields — they must be deterministic.</p>
+<p><code>label</code> and <code>description</code> remain schema-optional, but every derived value that
+appears in a player-visible formula should declare localized versions. The
+formula-help UI and derived-value breakdown replace identifiers such as
+<code>save_dex</code> with these labels; built-in function names are localized by the
+application. The executable formula is never translated, so manifests must
+continue to use the stable DSL identifiers shown above. Help navigation is
+limited to four levels and detects cycles.</p>
+<h3>Save terminology and formulas (<code>schemaVersion: 1.2</code>)</h3>
+<pre><code class="language-jsonc">&quot;abilities&quot;: [
+  { &quot;key&quot;: &quot;dex&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Dexterity&quot; }, &quot;saveFormula&quot;: &quot;1d20 + save_dex&quot; }
+],
+&quot;combatPresentation&quot;: {
+  &quot;save&quot;: {
+    &quot;label&quot;: { &quot;en&quot;: &quot;Save&quot; },
+    &quot;description&quot;: { &quot;en&quot;: &quot;A roll made to resist or reduce an effect.&quot; },
+    &quot;difficultyLabel&quot;: { &quot;en&quot;: &quot;Difficulty&quot; },
+    &quot;difficultyDescription&quot;: { &quot;en&quot;: &quot;Meet or exceed this value to succeed.&quot; }
+  }
+}
+</code></pre>
+<p>Declare <code>saveFormula</code> when a save includes proficiency or uses non-default
+dice. If omitted, the resolver keeps the legacy <code>d20 + &lt;ability&gt;_mod</code> fallback.
+The presentation block changes terminology/help only; mechanics remain in the
+action save step and ability formula. See the engine design notes (not published)
+for the pending-card override and visibility contract.</p>
+<h3>Lookup-table form</h3>
+<p>For table-style derivations (piece-symbol, multiclass spell slot
+tables, ability-modifier ladder) authors use an <strong>object</strong> formula
+instead of a string. Resolver reads the <code>match</code> keys from data, joins
+their string-coerced values with <code>.</code>, looks the composite key up in
+<code>lookup</code>, falls back to <code>default</code>.</p>
+<pre><code class="language-jsonc">{
+  &quot;key&quot;: &quot;piece_symbol&quot;,
+  &quot;formula&quot;: {
+    &quot;match&quot;: [&quot;color&quot;, &quot;piece&quot;],
+    &quot;lookup&quot;: {
+      &quot;white.king&quot;: &quot;♔&quot;,
+      &quot;white.queen&quot;: &quot;♕&quot;,
+      &quot;black.king&quot;: &quot;♚&quot;,
+      &quot;black.queen&quot;: &quot;♛&quot;
+    },
+    &quot;default&quot;: &quot;?&quot;
+  }
+}
+</code></pre>
+<p>The lookup form replaces the <code>manifest.hooks.computeDerivedHook</code>
+escape hatch for table-shape derivations. Numbers / booleans coerce
+to stable string segments — <code>{class: &#39;fighter&#39;, level: 5}</code> →
+<code>&#39;fighter.5&#39;</code>.</p>
+    </section>
+
+    <section id="auto-modifiers-visual-badges-from-system-data">
+<h2>7. Auto-modifiers — visual badges from system data</h2>
+
+<p>Four primitives are accepted: <code>hp-bar</code>, <code>counter</code>, <code>status</code>, and
+<code>status-list</code>. The last one projects every id from a <code>string[]</code> field through
+the condition catalog.</p>
+<pre><code class="language-jsonc">&quot;autoModifiers&quot;: [
+  {
+    &quot;type&quot;: &quot;hp-bar&quot;,
+    &quot;source&quot;: { &quot;currentKey&quot;: &quot;hp&quot;, &quot;maxKey&quot;: &quot;hp_max&quot;, &quot;tempKey&quot;: &quot;hp_temp&quot; },
+    &quot;visibility&quot;: &quot;all&quot;
+  },
+  {
+    &quot;type&quot;: &quot;counter&quot;,
+    &quot;source&quot;: { &quot;currentKey&quot;: &quot;spell_slots_1&quot;, &quot;labelTemplate&quot;: &quot;L1: {spell_slots_1}&quot; }
+  },
+  {
+    &quot;type&quot;: &quot;status&quot;,
+    &quot;source&quot;: { &quot;labelTemplate&quot;: &quot;Dead&quot; },
+    &quot;predicate&quot;: &quot;hp &lt;= 0&quot;,
+    &quot;visibility&quot;: &quot;evident&quot;,
+    &quot;anchor&quot;: &quot;center&quot;
+  },
+  {
+    &quot;type&quot;: &quot;status-list&quot;,
+    &quot;source&quot;: { &quot;currentKey&quot;: &quot;active_conditions&quot; },
+    &quot;list&quot;: &quot;conditions&quot;
+  }
+]
+</code></pre>
+<ul>
+<li><code>predicate</code> — boolean expression like <code>&#39;hp &lt;= 0&#39;</code>, <code>&#39;temp &gt; 0&#39;</code>. When
+false, modifier is hidden. Variables come from systemData + derived.</li>
+<li><code>anchor</code> — <code>&#39;top&#39; | &#39;bottom&#39; | &#39;left&#39; | &#39;right&#39; | &#39;center&#39;</code>. <strong>For <code>hp-bar</code>
+and <code>status-list</code>, leave <code>anchor</code> out</strong> unless the system needs its own
+layout: the product&#39;s standard layout then places them. (This is the
+engine default, not the room standard — a sample token a master saved in
+the room is applied on top of it and wins.) A token created from 2026-10-19
+gets the bar on the top edge with its number on the bar, the name resting
+on the bottom edge, and statuses in two columns inside the token:
+debuffs down the left edge, buffs and then neutral down the right. A column
+has four places; with five or more statuses it shows three and «+N».
+Tokens created earlier keep their original look exactly, including rows
+that first appear later (first HP, first status). A row with an explicit
+<code>anchor</code> (and <code>offsetX</code>/<code>offsetY</code>) is hand-placed: it keeps that placement
+and the original look — number under the bar, statuses in a grid — and wins
+over the standard layout in every system, forks included. Use it for
+layouts the standard cannot express, such as two stacked gauges.</li>
+</ul>
+<h3>Token look fields and the look edition</h3>
+<p>The standard layout is made of ordinary modifier fields, visible in a
+token&#39;s <code>modifiers</code> when you read it through the bridge:</p>
+<ul>
+<li><code>hp-bar.config.textPosition</code> (and <code>stat</code> <code>display: { type: &#39;bar&#39; }</code>) —
+<code>&#39;on&#39; | &#39;right&#39; | &#39;left&#39; | &#39;above&#39; | &#39;below&#39;</code>: where the bar&#39;s number
+stands. Absent = <code>&#39;below&#39;</code>. The same rules hold for both gauges: <code>&#39;on&#39;</code>
+keeps the bar within the middle of the token (between the status columns)
+and shrinks a long number to fit; a number with ANY chosen place hides
+below 7 screen px while the bar stays; a bar without the field draws its
+number at every zoom, as before.</li>
+<li>name label (<code>id: &#39;name-label&#39;</code>): <code>anchorAlign: &#39;end&#39;</code> (the text rests on the
+anchor instead of hanging from it), <code>color: &#39;#ffffff&#39;</code> and the label&#39;s own
+outline, no plate. <code>plate: true</code> draws a theme plate behind a single-line
+label (an empty <code>color</code> then follows the theme); the default name no longer
+carries it (2026-10-20), and a name with exactly the shipped pair
+(<code>plate: true</code>, <code>color: &#39;&#39;</code>) loses the plate and gets <code>#ffffff</code> when the
+master opens the room or places a token from such a source; a plate with
+its own colour stays. The default name keeps its size
+(<code>fontSizePct: 17</code>) and runs wider than a narrow token: since 2026-10-20
+it does NOT carry <code>fitWidthPct</code> / <code>minFontSizePct</code>. A manifest may still set
+them on a label (the size then shrinks from <code>fontSizePct</code> down to the
+minimum to fit the width together with the plate, never cut). A name that
+carries exactly the pair shipped for a few hours on 2026-10-20
+(<code>fitWidthPct: 100</code>, <code>minFontSizePct: 13</code>) loses it when the master opens
+the room; other values stay.</li>
+<li>How rows attach to the token — the name&#39;s <code>anchorAlign</code>/<code>plate</code>/fit, the
+bar&#39;s <code>textPosition</code> with its <code>fontSizePct</code>, the cluster&#39;s <code>layout</code> —
+travels with the HUD LAYOUT when a master copies it (with the edition
+mark), not with the style alone. The name&#39;s <code>color</code> and its size group
+(<code>fontSizePct</code> with <code>fitWidthPct</code>/<code>minFontSizePct</code>) go with its plate: a
+style copy between a plated and a bare name keeps the target&#39;s; a layout
+copy brings them only when it changes the plate. Rows drawn inside the token (name on the lower edge, top-edge bar,
+columns) give a single click to the token; their editor opens on double
+or right click.</li>
+<li><code>status-cluster.config.layout: &#39;polarity-columns&#39;</code> — the two columns
+above; anchor and offset do not move them.</li>
+<li><code>meta.tokenPresentationRev</code> — the token&#39;s look edition, written when the
+token is created: <code>2</code> for a new token (and for one placed from an actor or
+a compendium entry without its own HUD), absent = <code>1</code> for older tokens.
+A token placed with its source&#39;s own HUD takes the source&#39;s edition: a
+compendium snapshot carries the token&#39;s <code>meta</code> (no mark = 1), also when it
+is placed under the room standard; an actor&#39;s <code>prototypeToken</code> may carry
+<code>tokenPresentationRev: 1 | 2</code> (not a token prop; absent with rows = 1).
+Rows a system adds later follow the token&#39;s edition — an old token keeps
+the old places even for a first HP bar. Copying the HUD layout from
+another token hands over that token&#39;s edition. A token you create through
+the bridge from scratch gets edition 2; one placed from an actor
+(<code>place_token_from_actor</code>) or a snapshot gets its source&#39;s edition as
+above. Do not write this key yourself.</li>
+<li><code>visibility</code> — <code>&#39;all&#39; | &#39;evident&#39; | &#39;master&#39; | &#39;owner&#39;</code>. <code>evident</code>
+remains visible on a token whose characteristics are hidden.</li>
+<li><code>status-list.list</code> — optional reference to a named <code>slotLists</code> entry. Without
+it, anchor/offset stepping is used.</li>
+</ul>
+<h3>Slot lists for repeated token badges</h3>
+<p><code>slotLists</code> declares geometry for a stable sequence of badges. It is consumed
+by <code>autoModifiers[type=status-list]</code> and is unrelated to equipment slots.</p>
+<pre><code class="language-jsonc">&quot;slotLists&quot;: {
+  &quot;conditions&quot;: {
+    &quot;anchor&quot;: &quot;right&quot;,
+    &quot;baseOffsetX&quot;: 8,
+    &quot;baseOffsetY&quot;: 0,
+    &quot;stepX&quot;: 0,
+    &quot;stepY&quot;: 28,
+    &quot;capacity&quot;: 5
+  }
+}
+</code></pre>
+<p><code>capacity</code> is advisory: overflow continues past it and can be reported by the
+UI. Runtime keeps first-free stable occupancy per token, so adding one status
+does not reshuffle every existing icon.</p>
+    </section>
+
+    <section id="data-scopes-field-level-permissions">
+<h2>8. Data scopes — field-level permissions</h2>
+
+<pre><code class="language-jsonc">&quot;dataScopes&quot;: [
+  {
+    &quot;id&quot;: &quot;abilities&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Ability Scores&quot; },
+    &quot;keys&quot;: [&quot;str&quot;, &quot;dex&quot;, &quot;con&quot;, &quot;int&quot;, &quot;wis&quot;, &quot;cha&quot;],
+    &quot;editableBy&quot;: &quot;owner&quot;,        // &#39;master&#39; | &#39;owner&#39; | &#39;all&#39;
+    &quot;visibleTo&quot;:  &quot;all&quot;,
+    &quot;hiddenFromOwner&quot;: false      // optional: GM-only metadata override
+  }
+]
+</code></pre>
+<p>Field groups reference scopes via <code>scopeId</code>. Runtime checks gate every
+read and write through <code>canViewField</code> / <code>canEditField</code>.</p>
+<p>Text the whole table reads — an action&#39;s chat message, a timed effect&#39;s name
+and description — is built from what a player who does not own the token
+sees. A field whose scope is not <code>visibleTo: &quot;all&quot;</code> never reaches it: a
+computed substitution with it (<code>{8 + proficiency_bonus}</code>) prints a dash, a
+plain <code>{key}</code> prints as written, and the action editor names such fields
+under the text. Hide a field only when the table must not know it; a value
+that follows from visible fields (D&amp;D&#39;s proficiency bonus from level / CR)
+gains nothing from hiding.</p>
+    </section>
+
+    <section id="articles-for-fields-and-sections">
+<h2>9. Articles for fields and sections</h2>
+
+<p>A sheet field (a class, a race) and a section (features, inventory) can take
+their value or records from the compendium books linked to the room. The system
+says <strong>what</strong> a field takes; the book says <strong>where</strong> its articles are — by their
+tags. Tags are data an author edits; this query is the one place a system names
+them.</p>
+<pre><code class="language-jsonc">// field &quot;class&quot;
+&quot;articles&quot;: { &quot;tags&quot;: [[&quot;Тип: Класс&quot;, &quot;Type: Class&quot;]] }
+// field &quot;subclass&quot;: a subclass of the class chosen in the field &quot;class&quot;
+&quot;articles&quot;: { &quot;tags&quot;: [[&quot;Тип: Подкласс&quot;, &quot;Type: Subclass&quot;], [&quot;Класс: {class}&quot;, &quot;Class: {class}&quot;]] }
+</code></pre>
+<ul>
+<li><strong><code>tags</code></strong> — requirements, all of them must hold. A requirement is one tag or
+a list of equal alternatives (the same tag in several languages); an article
+meets it carrying any one. Tags compare exactly as the book wrote them.</li>
+<li><strong><code>{key}</code></strong> inside a tag stands for another field&#39;s value: every label and
+alias of its catalog entry (the sheet stores the id <code>wizard</code>, the book tags
+«Класс: Волшебник» or «Class: Wizard»), or the field&#39;s own text. An empty
+field drops the requirement — no class chosen, every subclass is offered. Every
+<code>{…}</code> must name another declared field (<code>[a-z][a-z0-9_]*</code>); the loader rejects
+any other. An alternative longer than 200 characters after the substitution
+is dropped; a requirement left with none is dropped as an empty field&#39;s is.</li>
+<li><strong><code>types</code></strong> (optional) — only these article types, at the top and among the
+rest. Omitted: a field takes every type a room member may search (<code>Concept</code>,
+<code>Rule</code>, <code>Custom</code>, <code>Document</code>, <code>Object</code>, <code>Action</code>, <code>Condition</code>, <code>Effect</code>); a
+section, its record type&#39;s article types — or every type, when the record
+type has none.</li>
+<li><code>articles</code> applies to <code>text</code> fields and <code>entryList</code> sections.</li>
+</ul>
+<p><strong>What a section&#39;s record holds.</strong> A section&#39;s query may say what a record
+taken from an article starts with:</p>
+<pre><code class="language-jsonc">// section &quot;Заклинания&quot; (entryList, entryType &quot;spell&quot;)
+&quot;articles&quot;: {
+  &quot;types&quot;: [&quot;Action&quot;],
+  &quot;tags&quot;: [[&quot;Тип: Заклинание&quot;, &quot;Type: Spell&quot;], [&quot;Класс: {class}&quot;, &quot;Class: {class}&quot;]],
+  &quot;fill&quot;: { &quot;level&quot;: [&quot;Круг: {value}&quot;, &quot;Level: {value}&quot;] },
+  &quot;set&quot;: { &quot;prepared&quot;: true }
+}
+</code></pre>
+<ul>
+<li><strong><code>fill</code></strong> — a field of the record from the article&#39;s tags: every pattern
+matched whole against every tag (case and spaces as written) offers the text
+in place of <code>{value}</code>, and the first value that reads as the field counts
+(«Круг: 12» does not fit a circle up to 9 — «Level: 3» after it does). A
+number field takes a decimal number within its <code>min</code>/<code>max</code>/<code>integer</code>, a flag
+<code>true</code>/<code>false</code>, an enum one of its <code>options</code> — by id or by an
+<code>optionLabels</code> label in any language and case, a <code>tag-list</code> the text as one
+item. None reads — the record keeps its own value from the article (an
+item&#39;s), else the field stays <strong>unset</strong>, not the convention&#39;s default: an
+article that names no circle is not of circle 1. In D&amp;D an unset circle reads
+as 0 in <code>prepared or level == 0</code>: a spell whose circle the book does not name
+stays open, as a cantrip does, until the book is tagged.</li>
+<li><strong><code>set</code></strong> — values every record taken from an article starts with; each of
+its field&#39;s type (a number within its bounds, a flag, a text; an enum one of
+its options; not a <code>tag-list</code>) — the loader rejects any other.</li>
+<li>The section&#39;s own seed (<code>newEntry.data</code>) wins over both and over an item&#39;s
+own values: a list filtered by a field keeps the record it takes. A value
+from a tag or from <code>set</code> wins over an item&#39;s own.</li>
+<li>Both name fields of the section&#39;s record type (<code>entryConventions</code>); the
+loader rejects any other key, and a field&#39;s query takes neither.</li>
+<li>An article that carries an action (<code>Action</code>) lends it through the record:
+the record gets the article&#39;s action as its own (<code>usable</code>, as an item&#39;s), and
+the sheet shows its button on the row and in the actions list. The token&#39;s
+own actions are not touched.</li>
+</ul>
+<p>Articles that meet the query are listed first, under «Из компендиума»; any other
+article of the room&#39;s books follows under «Другие статьи», with its folder path.
+A book nobody tagged still fills the field — it is only not sorted. For a field
+the order is: the book&#39;s matching articles, the system&#39;s catalog, the rest.</p>
+<p><strong>What a pick stores.</strong> The field keeps a word: a picked article whose title is
+a catalog entry (by label or alias) stores that entry&#39;s id; any other stores the
+title as the field&#39;s own text (a world&#39;s «Артефактор»). A title with its name in
+another alphabet in brackets, «Волшебник [Wizard]», goes by the whole and by
+each name: it finds the entry by either, and as the field&#39;s own text
+(«Артефактор [Artificer]») it meets «Класс: Артефактор» and «Class: Artificer»
+alike. A bracket in the same alphabet («Эльф [высший]») is part of one name. A
+source mark or a number in brackets — capitals only or no letters
+(«Волшебник [PHB]», «Кольцо [+1]») — is dropped, and the name before it counts.
+Names that point at two entries name none — the field keeps the title. The link to the article
+lives beside the values in the engine key <code>_fieldArticles</code> as
+<code>{ [fieldKey]: { value, ref } }</code> and holds only while the field still has that
+value: writing another value by any other path (an import, <code>patch_state</code>) drops
+the link by itself, and the same word written back brings it back. Do not write
+<code>_fieldArticles</code> by hand. Sheets without a <code>sheetLayout</code> (the flat legacy sheet)
+show a link but offer no picker. One who edits the sheet
+sees the value with a book that opens the article; one who only reads it sees
+the value as a link.</p>
+<h3>Tag vocabulary for D&amp;D books</h3>
+<p>The built-in D&amp;D 5e system asks (the 2024 edition, built on it, asks the same
+from its next publication):</p>
+<ul>
+<li>class — «Тип: Класс» / «Type: Class»;</li>
+<li>race — «Тип: Раса», «Тип: Вид» / «Type: Race», «Type: Species»;</li>
+<li>background — «Тип: Предыстория» / «Type: Background»;</li>
+<li>creature type — «Тип: Тип существа» / «Type: Creature Type»;</li>
+<li>spells section — «Тип: Заклинание» / «Type: Spell» <strong>and</strong> «Класс: <class>»
+(the character&#39;s spells first), the circle from «Круг: N» / «Level: N»
+(cantrips — «Круг: 0»); a spell taken from the book is prepared;</li>
+<li>subclass — «Тип: Подкласс» / «Type: Subclass» <strong>and</strong> «Класс: <class>» /
+«Class: <class>», the class by a label or alias of the system&#39;s class catalog
+(the aliases carry the usual translations: «Клирик», «Чернокнижник»,
+«Рейнджер», «Разбойник», «Боец»), or by the book&#39;s own name for a class the
+catalog has not («Артефактор»).</li>
+</ul>
+<p>The axis «Тип» says what the article <em>is</em>; other axes say what it <em>belongs to</em>
+(«Класс: Жрец» on a class feature). Keep the two apart: a class feature tagged
+«Класс: Жрец» is not a class. A book laid out in folders can be tagged by its
+folders in one pass — a rule «Классы › *» → «Тип: Класс» per kind of article.</p>
+    </section>
+
+    <section id="catalogs-shared-closed-vocabularies">
+<h2>10. Catalogs — shared closed vocabularies</h2>
+
+<p>Catalogs define reusable ids and localized labels for sizes, damage types,
+languages, proficiencies, equipment categories, and similar enumerations.</p>
+<pre><code class="language-jsonc">&quot;catalogs&quot;: [
+  {
+    &quot;id&quot;: &quot;damage_types&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Damage types&quot;, &quot;ru&quot;: &quot;Типы урона&quot; },
+    &quot;entries&quot;: [
+      { &quot;id&quot;: &quot;fire&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Fire&quot;, &quot;ru&quot;: &quot;Огонь&quot; },
+        &quot;metadata&quot;: { &quot;color&quot;: &quot;#ef4444&quot; } },
+      { &quot;id&quot;: &quot;cold&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Cold&quot;, &quot;ru&quot;: &quot;Холод&quot; } }
+    ]
+  }
+]
+</code></pre>
+<p><code>Field.catalogId</code> references a catalog. <code>metadata</code> is intentionally free-form:
+the generic engine stores it but does not assign universal semantics to keys.
+Catalogs are edited on the Reference page.</p>
+    </section>
+
+    <section id="combat-vocabulary-and-defaults">
+<h2>11. Combat vocabulary and defaults</h2>
+
+<p>These optional blocks replace D&amp;D assumptions in generic combat UI/runtime.
+They currently have no dedicated <code>/systems</code> page, so treat the JSON Schema and
+built-in manifests as the authoring source.</p>
+<h3>Abilities and save terminology</h3>
+<pre><code class="language-jsonc">&quot;abilities&quot;: [
+  {
+    &quot;key&quot;: &quot;reflex&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Reflex&quot; },
+    &quot;description&quot;: { &quot;en&quot;: &quot;Avoid sudden danger.&quot; },
+    &quot;saveFormula&quot;: &quot;2d6 + reflex&quot;
+  }
+],
+&quot;combatPresentation&quot;: {
+  &quot;save&quot;: {
+    &quot;label&quot;: { &quot;en&quot;: &quot;Resist&quot; },
+    &quot;difficultyLabel&quot;: { &quot;en&quot;: &quot;Difficulty&quot; }
+  }
+}
+</code></pre>
+<p>Without <code>saveFormula</code>, save resolution falls back to
+<code>d20 + &lt;ability&gt;_mod</code>. <code>combatPresentation</code> changes labels/help, not mechanics.</p>
+<h3>Critical-hit rule</h3>
+<pre><code class="language-jsonc">&quot;critRule&quot;: {
+  &quot;trigger&quot;: { &quot;kind&quot;: &quot;range&quot;, &quot;min&quot;: 19, &quot;die&quot;: 20 },
+  &quot;effect&quot;: { &quot;kind&quot;: &quot;double-dice&quot; },
+  &quot;autoHit&quot;: &quot;nat-max&quot;
+}
+</code></pre>
+<p>Trigger kinds: <code>natMax</code>, <code>range</code>. Effect kinds: <code>double-dice</code>, <code>max-dice</code>,
+<code>add-max-total</code>, <code>multiplier</code>, <code>multiply-total</code>, <code>auto-hit</code>, <code>none</code>. <code>autoHit</code> is orthogonal: <code>nat-max</code> makes
+only the natural maximum hit automatically; <code>trigger</code> makes every triggered
+critical hit. An action may override the system rule through <code>actions[].crit</code>.</p>
+<p><code>max-dice</code> adds only the maximum dice value; flat modifiers are counted once.
+<code>add-max-total</code> adds the maximum of the entire original damage formula, including
+constant modifiers: <code>Dcrit = Drolled + Dmaximum</code>. For example, <code>1d4+2</code> becomes
+<code>1d4+2+6</code> (a roll of 3 deals 11), and <code>1d4+2d6+3</code> becomes <code>1d4+2d6+3+19</code>.
+Variables are resolved for the current damage roll before computing its maximum;
+the maximum adds no random dice. Use this mode for ordinary damage formulas:
+sums of dice plus numeric modifiers (including negative modifiers). The maximum
+is computed with maximum dice faces; arbitrary expressions with subtracted dice,
+rerolls or explosions are outside this mode&#39;s supported contract.</p>
+<p>Set this once in the system manifest; actions inherit it unless they declare <code>crit</code>:</p>
+<pre><code class="language-jsonc">&quot;critRule&quot;: {
+  &quot;trigger&quot;: { &quot;kind&quot;: &quot;natMax&quot;, &quot;die&quot;: 20 },
+  &quot;effect&quot;: { &quot;kind&quot;: &quot;add-max-total&quot; }
+}
+</code></pre>
+<h3>Rounding</h3>
+<pre><code class="language-jsonc">&quot;rounding&quot;: &quot;floor&quot;                       // one mode for everything
+&quot;rounding&quot;: {                             // or a map
+  &quot;default&quot;: &quot;floor&quot;,
+  &quot;damage&quot;: &quot;floor&quot;,                      // damage step totals, before saves and defenses
+  &quot;heal&quot;: &quot;ceil&quot;,                         // additions to the engine health field `hp`
+  &quot;modifyField&quot;: &quot;round&quot;,                 // every other modifyField value
+  &quot;resource&quot;: &quot;floor&quot;,                    // consumeResource / restoreResource amounts
+  &quot;saveFactor&quot;: &quot;floor&quot;,                  // the saver&#39;s share (saveRule.factor)
+  &quot;defenses&quot;: &quot;floor&quot;                     // each resistance / vulnerability stage
+}
+</code></pre>
+<p>Modes: <code>floor</code>, <code>ceil</code>, <code>round</code>, <code>none</code>. Fractions come only from formulas
+(<code>(1d8+4)/2</code> = 2.5); HP, fields and resources are integers, so the engine
+rounds every number that becomes state and every multiplier stage. The
+computation list is the engine&#39;s, not the system&#39;s. Absent → <code>floor</code> for
+everything. A step overrides its own computation through <code>round</code> on <code>damage</code>,
+<code>modifyField</code>, <code>consumeResource</code>, <code>restoreResource</code> and inside <code>saveRule</code>:</p>
+<pre><code class="language-jsonc">{ &quot;type&quot;: &quot;damage&quot;, &quot;formula&quot;: &quot;x / 3&quot;, &quot;round&quot;: &quot;floor&quot; },
+{ &quot;type&quot;: &quot;modifyField&quot;, &quot;path&quot;: &quot;hp&quot;, &quot;op&quot;: &quot;add&quot;, &quot;value&quot;: &quot;x / 3&quot;, &quot;round&quot;: &quot;ceil&quot; }
+</code></pre>
+<p>Attack rolls and comparisons are never rounded: a fraction there is an
+authoring error for the editor diagnostics. <code>floor()</code>, <code>ceil()</code>, <code>round()</code>
+inside a formula still round an intermediate value; the flag owns the step&#39;s
+result. The card names the rounding in the value breakdown (<code>2.5 → 2</code>).</p>
+<h3>Initiative</h3>
+<pre><code class="language-jsonc">&quot;initiative&quot;: {
+  &quot;mode&quot;: &quot;sorted&quot;,
+  &quot;rollFormula&quot;: &quot;1d20 + initiative&quot;,
+  &quot;direction&quot;: &quot;desc&quot;,
+  &quot;tiebreakers&quot;: [&quot;dex_mod&quot;],
+  &quot;stableFallback&quot;: &quot;name&quot;
+}
+</code></pre>
+<p><code>sorted</code> requires exactly one of <code>rollFormula</code> or <code>sortKey</code>. Other modes are
+<code>narrative</code> (<code>hidePanel?</code>) and <code>manual</code> (<code>onRoundStart: preserve | master-prompt</code>).
+If the block is absent, combat uses the legacy rolled fallback.</p>
+    </section>
+
+    <section id="item-contributions-damage-cascades-and-state-rules">
+<h2>12. Item contributions, damage cascades, and state rules</h2>
+
+<p>These blocks move common combat/inventory policies out of hardcoded system
+handlers. They are optional; omitting them preserves the engine defaults.</p>
+<h3>Item rules</h3>
+<p>Each <code>itemRules</code> record evaluates against one item&#39;s own <code>entry.data</code> and
+contributes to an effective sheet field through the effects pipeline.</p>
+<pre><code class="language-jsonc">&quot;itemRules&quot;: [
+  {
+    &quot;id&quot;: &quot;carried-weight&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Carried weight&quot; },
+    &quot;when&quot;: &quot;equipped == 0&quot;,
+    &quot;key&quot;: &quot;carried_weight&quot;,
+    &quot;mode&quot;: &quot;add&quot;,
+    &quot;value&quot;: &quot;weight&quot;
+  }
+]
+</code></pre>
+<p><code>when</code> is optional. Modes: <code>add</code>, <code>multiply</code>, <code>replace-base</code>, <code>override</code>,
+<code>upgrade</code>, <code>downgrade</code>. Both <code>when</code> and <code>value</code> see item fields, not
+character fields.</p>
+<h3>Damage cascades</h3>
+<pre><code class="language-jsonc">&quot;damageCascades&quot;: [
+  {
+    &quot;id&quot;: &quot;physical&quot;,
+    &quot;damageTypes&quot;: [&quot;slashing&quot;, &quot;piercing&quot;, &quot;bludgeoning&quot;],
+    &quot;pools&quot;: [
+      { &quot;path&quot;: &quot;hp_temp&quot; },
+      { &quot;path&quot;: &quot;hp&quot; }
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;stress&quot;,
+    &quot;damageTypes&quot;: [&quot;mental&quot;],
+    &quot;pools&quot;: [{ &quot;path&quot;: &quot;stress&quot;, &quot;signed&quot;: true }]
+  }
+]
+</code></pre>
+<p>The first matching typed cascade claims the damage; omit <code>damageTypes</code> for a
+catch-all. Intermediate absorbing pools stop at their declared numeric field
+<code>min</code> (zero when absent) and pass the remainder to the next pool. Terminal
+and <code>signed</code> pools use the declared <code>min</code>, or allow negative values when it
+is absent. The same field minima constrain combat field mutations and group
+HP controls. D&amp;D declares <code>hp.min: 0</code>; this is not a global zero clamp.</p>
+<h3>Defense field bindings</h3>
+<pre><code class="language-jsonc">&quot;defenses&quot;: {
+  &quot;resistances&quot;: &quot;damage_resistances&quot;,
+  &quot;immunities&quot;: &quot;damage_immunities&quot;,
+  &quot;vulnerabilities&quot;: &quot;damage_vulnerabilities&quot;,
+  &quot;conditionImmunities&quot;: &quot;condition_immunities&quot;,
+  &quot;critImmunity&quot;: &quot;crit_immune&quot;
+}
+</code></pre>
+<p>Each optional binding must name a declared field. Its catalog resolves IDs,
+localized labels and optional entry <code>aliases</code> (historical spellings). Combat
+reads effective values, including temporary effects. The built-in D&amp;D system
+uses these bindings; other systems opt in explicitly. Resistance halves and
+rounds down, then vulnerability doubles; duplicate sources do not stack and
+immunity wins. A preceding save factor is applied before defenses. Legacy
+numeric <code>resist_&lt;type&gt;</code> fields remain supported. These bindings implement this
+specific defense model, not arbitrary user-defined multiplier rules.</p>
+<p><code>critImmunity</code> names a <strong>number</strong> field (sheet fields have no boolean, and
+sources add up): above zero, a critical hit against the creature is a normal
+hit — 5e Adamantine Armor. The attack still lands for every target (a natural
+20 keeps its auto-hit), the dice are not transformed, and the card records a
+hit. Bare <code>crit</code> in a branch predicate still sees the trigger, so a
+hand-written <code>atk &gt;= target_ac or crit</code> keeps hitting (and a hand-written
+<code>when: &#39;crit&#39;</code> extra still fires). <code>&lt;capture&gt;_crit</code> respects immunity: inside a
+<code>scope: &quot;eachTarget&quot;</code> branch it answers for that target; outside, for the
+first target, as every branch predicate does — put crit extras for several
+targets in a per-target branch. Damage answers to each target:
+<code>rollMode: perTarget</code> per target; a shared roll with mixed targets rolls the
+crit dice for the others and a separate normal roll (own key, formula and
+dice on the target&#39;s row, rerolled there) for the immune ones
+(<code>perTargetDamage[].baseTotal</code> / <code>.crit</code>), and the combat card and outcome mark
+the crit per target. Immunity is read before the
+dice are rolled — a doubled roll cannot be taken back afterwards. The dice HUD
+still lights a natural 20: that is the die, not the outcome. An item grants it with an equip
+effect <code>{ &quot;key&quot;: &quot;crit_immune&quot;, &quot;mode&quot;: &quot;add&quot;, &quot;value&quot;: 1 }</code>.</p>
+<h3>State rules</h3>
+<p>State rules are re-evaluated after damage and healing. They can apply a
+declared condition and/or mark the actor defeated.</p>
+<pre><code class="language-jsonc">&quot;stateRules&quot;: [
+  {
+    &quot;id&quot;: &quot;downed&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Downed&quot; },
+    &quot;when&quot;: &quot;hp &lt;= 0&quot;,
+    &quot;condition&quot;: &quot;unconscious&quot;,
+    &quot;defeated&quot;: true
+  }
+]
+</code></pre>
+<p>A condition named by a rule is owned by the rules: it is applied while the
+predicate holds and removed when it stops holding. A rule that should also
+keep a condition applied by hand includes it in its own predicate
+(<code>… || contains(&#39;active_conditions&#39;, &#39;dead&#39;)</code>) — under the same numeric guard,
+so rolling back the hit that caused it (a rejected or corrected row) lifts it.</p>
+<p>Besides the sheet&#39;s fields and derived fields, a rule reads one context
+variable, reserved over any field of the same name:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>player_owned</code></td>
+<td><code>1</code> when a player plays the token, else <code>0</code></td>
+</tr>
+</tbody></table></div>
+<p>A player plays a token when a user who is not the table&#39;s master owns it
+(<code>ownerId</code>) or holds the OWNER level in <code>ownership</code>, or when everyone does
+(<code>ownership.default</code> OWNER). The master&#39;s own token is not a player&#39;s; a
+player&#39;s token handed over through <code>ownership</code> alone is. The same answer
+decides the master&#39;s fog preview. (Who answers a roll or a save is another
+question — the account in <code>ownerId</code>.)</p>
+<p>The rules are judged at one point: the master&#39;s client re-judges a token
+every time its data changes — damage and healing from any source (action
+steps, the sheet, the HP bar, the bridge&#39;s <code>patch_state</code>, undo, import),
+a status put on or taken off, an owner change — and every token of the table
+each time the master&#39;s client binds to the room (a load, a reconnect, a table
+switch, a rule-system swap), so data written while no master judged comes in
+line; only a difference is written. A rule-owned condition taken off by hand
+comes back while its predicate holds. A sheet the rules have nothing to judge
+on is not judged — neither for its statuses nor for the initiative order&#39;s
+«out of the fight»: rules that read <code>hp</code> judge only a sheet that has hit
+points (<code>hp</code> present and not a written 0 of 0 — a maximum or death saves
+alone do not count, an absent <code>hp</code> would read as 0); other rules judge a
+sheet that has any number they read.</p>
+<p>It lets a system decide how a player&#39;s character and a creature leave the
+fight. D&amp;D declares dying for a player&#39;s character at zero HP
+(<code>hp &lt;= 0 &amp;&amp; player_owned == 1</code>, <code>defeated: false</code>), and death — the standard
+<code>dead</code> condition, <code>defeated: true</code> — at zero HP for a creature, for a character
+after three failed death saves, or when <code>dead</code> is already on the token (applying
+<code>dead</code> by hand zeroes HP). Healing above zero lifts it. A
+system that keeps its creatures alive at zero simply does not test
+<code>player_owned</code>.</p>
+<p>If no state rules are declared, the engine keeps its default defeated-at-zero
+HP rule.
+System-derived exclusions update when the state changes and are reconciled
+when reading initiative; explicit master exclusions remain manual. Historical
+<code>defeated: true</code> entries without provenance are preserved as manual.</p>
+    </section>
+
+    <section id="actions-generic-flow-primitives">
+<h2>13. Actions — generic flow primitives</h2>
+
+<p>Action steps form a sequence. Use <code>captureAs</code> to expose roll/save
+results, then <code>branch</code> to dispatch on predicates.</p>
+<h3>Action envelope</h3>
+<p>Besides required <code>id</code>, <code>label</code>, <code>usableBy</code>, and non-empty <code>steps</code>, an action may
+declare:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>description</code></td>
+<td>Localized hover help.</td>
+</tr>
+<tr>
+<td><code>group</code>, <code>groupOrder</code></td>
+<td>Context-menu submenu and section order.</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td><code>active</code>, <code>bonus</code>, <code>reactive-prompt</code>, <code>reactive-auto</code>, or <code>free</code>; absent means <code>active</code>.</td>
+</tr>
+<tr>
+<td><code>cost</code></td>
+<td>Resource-id → constant/formula map paid by the resolver.</td>
+</tr>
+<tr>
+<td><code>repeat</code></td>
+<td><code>count</code> and <code>targetMode: same/rebound/distribute</code>.</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code>assetId</code> or Lucide icon, optional color.</td>
+</tr>
+<tr>
+<td><code>targeting</code></td>
+<td>Spatial reach and selection shape.</td>
+</tr>
+<tr>
+<td><code>presentation</code></td>
+<td>Typed FX cues and automatic damage-reaction policy.</td>
+</tr>
+<tr>
+<td><code>disabled</code></td>
+<td>Keep the definition but hide it from the ordinary action menu.</td>
+</tr>
+<tr>
+<td><code>reaction</code></td>
+<td>Phase trigger, optional prompt, rerun/cancel boundary.</td>
+</tr>
+<tr>
+<td><code>crit</code></td>
+<td>Per-action override of the system <code>critRule</code>.</td>
+</tr>
+</tbody></table></div>
+<p><code>reactive-prompt</code> and <code>reactive-auto</code> can also be invoked manually on the
+player&#39;s own turn or another token&#39;s turn. The turn exemption does not bypass
+control permissions, disabled actions, resource costs, or an unresolved action
+already occupying the table. <code>active</code>, <code>bonus</code>, <code>free</code>, and an omitted <code>kind</code>
+retain the ordinary player turn restriction during combat.</p>
+<p><code>kind: &quot;reactive&quot;</code> is not a supported value or alias. For event-driven reactions,
+use a supported reaction kind together with <code>reaction</code> (trigger, condition,
+optional prompt and rerun/cancel). A manual off-turn invocation does not by
+itself attach to or recalculate another action.</p>
+<p><code>cost</code> is separate from explicit <code>consumeResource</code> steps: do not declare both
+for the same payment unless the action really spends twice. <code>repeat.count</code> may
+be a positive integer or formula; <code>same</code> repeats on the original targets,
+<code>rebound</code> reads one target per iteration from runtime input <code>repeat_targets</code>,
+and <code>distribute</code> uses <code>repeat_distribution</code> or a round-robin fallback across
+selected targets.</p>
+<h3>What a card shows of a spend</h3>
+<p>Whatever an action spent appears on its card as <strong>spend chips</strong>, at the end
+of the action line: the envelope (<code>cost</code>, or the turn of its <code>kind</code>), every
+<code>consumeResource</code> of the path the resolution took (a branch not taken spends
+nothing; <code>resourceFrom</code> shows the resource the answer chose), the item&#39;s
+charges, and the entry&#39;s uses. One resource spent by <code>cost</code> and by a step is
+one chip with the sum.</p>
+<ul>
+<li><strong>Who sees it.</strong> A player sees the chips of the tokens they play; the master
+sees all; the master in «Вид игрока» sees as that player. A resource whose
+current value <code>dataScopes</code> hide from the payer&#39;s own player is the master&#39;s
+secret: its spend is not written to the card at all (the master sees it on
+his waiting card, with the red crossed eye).</li>
+<li><strong>The chip.</strong> The kind&#39;s icon from <code>resourceCategories</code> (no kind — a gem),
+the resource&#39;s label (dropped when it equals the action&#39;s name — a potion
+spending itself), the amount «−1». The remainder «2/3» is read live from the
+sheet, only on the last card that spent that resource, only when the
+viewer may see the field and only when the maximum is under 10: big pools
+(arrows, gold) show «−1» alone.</li>
+<li><strong>States.</strong> Dashed — declared (the card waits for the master); quiet —
+spent; struck amount + the hammer, warning colour — the master applied it
+over a shortfall (nothing was taken); struck amount + the return arrow,
+green — returned on rejection; red remainder — short (a refusal, the
+choice window).</li>
+<li><strong>Turn marker.</strong> In combat, when the system names the turn kinds in
+<code>resourceCategories</code>: the action takes its turn slot by <code>kind</code> — action
+(green circle), bonus action (orange triangle), reaction (violet diamond) —
+or by an explicit <code>cost</code> of a turn resource; movement is yellow footprints.</li>
+<li><strong>Two chips, then «+N»</strong> — a press opens the row.</li>
+<li>A refusal for a shortfall reads «Не хватает» with the chip of what is short
+and its red remainder; the chat line of a direct call carries the same
+sentence with the resource&#39;s name. An item spent by its action has no
+separate «использовал» line any more — the chip says it; «израсходован» and
+«превратился» stay.</li>
+</ul>
+<h3>Step types</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th><code>type</code></th>
+<th>Fields</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>roll</code></td>
+<td><code>formula</code>, <code>captureAs?</code>, <code>compare?</code></td>
+<td>Dice roll; total exposed under <code>captureAs</code></td>
+</tr>
+<tr>
+<td><code>save</code></td>
+<td><code>ability</code>, <code>dc</code>, <code>dispatcher?</code>, <code>captureAs?</code></td>
+<td>Explicit saving throw; <code>dispatcher</code>: <code>master</code>, <code>target</code>, or <code>either</code></td>
+</tr>
+<tr>
+<td><code>damage</code></td>
+<td><code>formula</code>, <code>damageType?</code>, <code>rollMode?</code>, <code>when?</code>, <code>saveRule?</code></td>
+<td><code>shared</code> (default) rolls once; <code>perTarget</code> rolls independently</td>
+</tr>
+<tr>
+<td><code>effect</code></td>
+<td><code>effectId</code>, <code>duration?</code>, <code>target?</code>, <code>when?</code>, <code>saveRule?</code>, <code>captureAs?</code>, <code>whileEffect?</code></td>
+<td>Apply condition by id from <code>conditions</code>. <code>target</code> picks who receives, <code>when</code>/<code>saveRule</code> whether: with <code>target: self</code> the caster gets it once if at least one target passed the gate (failed the save, or succeeded with <code>factor</code> &gt; 0; <code>when</code> true). <code>whileEffect</code> links within one token only: a target step naming a <code>self</code> effect is not linked — it lands, as an ordinary effect removed by hand or by its own duration, on the targets the source&#39;s gate let through and only if the source landed; the caster&#39;s own entry, when it is among the targets, stays linked</td>
+</tr>
+<tr>
+<td><code>timedEffect</code></td>
+<td><code>effectId</code>, <code>changes</code>, <code>duration</code>, <code>target?</code>, <code>when?</code>, <code>saveRule?</code>, <code>label?</code>, <code>icon?</code>, <code>description?</code></td>
+<td>Inline self-expiring layered changes; base data stays unchanged. <code>label</code>/<code>description</code> are text templates like <code>chat.text</code>, without target fields; empty <code>changes</code> is a reminder. On the token the status is called <code>label</code>, else the action&#39;s name; <code>icon</code> and <code>description</code> give it the look and hover text of a catalog condition. Gates as in <code>effect</code>: with <code>target: self</code> it lands on the caster once if at least one target passed the gate (failed the save, or succeeded with <code>factor</code> &gt; 0; <code>when</code> true) — concentration only when the spell took hold</td>
+</tr>
+<tr>
+<td><code>chat</code></td>
+<td><code>text</code> (<code>I18nLabel</code>)</td>
+<td>Narrative template; reads captures plus shared-visible source/first-target fields</td>
+</tr>
+<tr>
+<td><code>branch</code></td>
+<td><code>cases: [{when, outcome?, then}]</code></td>
+<td>First true predicate wins; nested steps run. Optional <code>outcome</code> is <code>hit</code>/<code>miss</code></td>
+</tr>
+<tr>
+<td><code>consumeResource</code></td>
+<td><code>resourceId</code> | <code>ref</code> | <code>resourceFrom</code>, <code>amount</code>, <code>target?</code></td>
+<td>Decrement a <code>manifest.resources[]</code> current. Fails if insufficient (see the engine design notes (not published) §5.3). <code>resourceFrom</code> — id of a <code>select</code> prompt: spends the chosen option&#39;s <code>resource</code> (caster only; a free option spends nothing)</td>
+</tr>
+<tr>
+<td><code>restoreResource</code></td>
+<td><code>resourceId</code> | <code>ref</code> | <code>restoreAllOf</code> | <code>resourceFrom</code>, <code>amount?</code>, <code>mode?</code>, <code>target?</code></td>
+<td>Set/add resource current. <code>amount: &#39;max&#39;</code> restores fully; <code>resourceFrom</code> restores the chosen option&#39;s <code>resource</code></td>
+</tr>
+<tr>
+<td><code>modifyField</code></td>
+<td><code>path</code>, <code>op</code>, <code>value</code>, <code>target?</code></td>
+<td>Write to a declared field; ops <code>set/add/mul/clamp/min/max</code>. Edit policy enforced (action.usableBy vs scope)</td>
+</tr>
+<tr>
+<td><code>prompt</code></td>
+<td><code>id</code>, <code>kind</code>, <code>label</code>, <code>options?</code>, ...</td>
+<td>Pre-flight player input (slot level, advantage flag). Current runtime gathers top-level prompt steps before execution; nested prompt is not a supported authoring pattern</td>
+</tr>
+<tr>
+<td><code>capability</code></td>
+<td><code>ref</code>, <code>args?</code>, <code>captureAs?</code></td>
+<td>Call an engine-registered typed capability; manifests cannot register code</td>
+</tr>
+</tbody></table></div>
+<p><code>prompt</code> in <code>steps[]</code> is the current input contract. It is collected during
+pre-flight before any mutating step runs.</p>
+<h3>Roll comparison and save projection</h3>
+<p><code>roll.compare</code> turns a total into a hit/miss comparison without hardcoding AC:</p>
+<pre><code class="language-jsonc">{
+  &quot;type&quot;: &quot;roll&quot;,
+  &quot;formula&quot;: &quot;1d20 + attack_bonus&quot;,
+  &quot;captureAs&quot;: &quot;attack&quot;,
+  &quot;tags&quot;: [&quot;attack&quot;],
+  &quot;compare&quot;: {
+    &quot;threshold&quot;: &quot;target_ac&quot;,
+    &quot;op&quot;: &quot;gte&quot;,
+    &quot;marginAs&quot;: &quot;margin&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Armor class&quot; }
+  }
+}
+</code></pre>
+<p>Comparison ops: <code>gte</code>, <code>gt</code>, <code>lte</code>, <code>lt</code>, <code>eq</code>; default <code>gte</code>.
+An attack roll carries <code>&quot;tags&quot;: [&quot;attack&quot;]</code>: a timed effect&#39;s
+<code>rollModifier: {tag: &quot;attack&quot;}</code> («disadvantage on the next attack») finds the
+bearer&#39;s roll by this tag only — never by <code>compare</code> or by the <code>captureAs</code> name
+(<code>&quot;attack&quot;</code> above is the result&#39;s name, not its tag).
+<code>damage.saveRule</code> and <code>effect.saveRule</code> project a preceding per-target save onto
+each target without rerolling a shared area result. <code>from</code> names the save&#39;s
+<code>captureAs</code>; omitted means the most recent save. <code>factor: &quot;0.5&quot;</code> halves damage
+for savers, while <code>factor: &quot;0&quot;</code> negates damage or an effect.</p>
+<h3>Reactions</h3>
+<p>A reaction listens at a closed resolver boundary and may prompt an owner,
+rerun from a phase, or cancel from that phase:</p>
+<pre><code class="language-jsonc">&quot;reaction&quot;: {
+  &quot;trigger&quot;: { &quot;phase&quot;: &quot;preDamageApplication&quot;, &quot;when&quot;: &quot;hp &lt;= 5&quot; },
+  &quot;prompt&quot;: {
+    &quot;owner&quot;: &quot;self&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Use reaction?&quot; },
+    &quot;timeoutSec&quot;: 15
+  },
+  &quot;onAcceptCancel&quot;: &quot;preDamageApplication&quot;
+}
+</code></pre>
+<p>Phase ids: <code>preItemRoll</code>, <code>preambleComplete</code>, <code>preAttackRoll</code>, <code>preCheckHits</code>,
+<code>postAttackRoll</code>, <code>preSave</code>, <code>postSave</code>, <code>damageBonus</code>, <code>preDamageRoll</code>,
+<code>postDamageRoll</code>, <code>preDamageApplication</code>, <code>preActiveEffects</code>.</p>
+<p><strong>Reading the source.</strong> A reaction&#39;s conditions (<code>trigger.when</code>, and <code>when</code> of
+its branches) read the action it answers through functions with a string
+argument:</p>
+<pre><code class="language-jsonc">&quot;trigger&quot;: { &quot;phase&quot;: &quot;preItemRoll&quot;,
+             &quot;when&quot;: &quot;is_caster == 0 and source_spent(&#39;spell_slot&#39;) &gt; 0&quot; }
+</code></pre>
+<ul>
+<li><code>source_spent(&#39;&lt;kind&gt;&#39;)</code> — units of that kind (<code>resources[].category</code>) the
+source spent — its caster or the table — by the phase: the envelope <code>cost</code>,
+the steps of the path it took (<code>resourceFrom</code> included), the item&#39;s charges;</li>
+<li><code>source_spent_rank(&#39;&lt;kind&gt;&#39;)</code> — the highest <code>rank</code> among them, 0 if none;</li>
+<li><code>source_spent_key(&#39;&lt;key&gt;&#39;)</code> — by the resource key;</li>
+<li><code>source_answer(&#39;&lt;prompt id&gt;&#39;)</code> — the source&#39;s answer; a setup answer of a
+repeating action is given once and reads its value; a question answered
+more than once during the resolution (inside a repeat or «for each target»)
+reads 0;</li>
+<li><code>source_action(&#39;&lt;id&gt;&#39;)</code>, <code>source_entry_type(&#39;&lt;entry type&gt;&#39;)</code> — 1 when the
+source is that action / was lent by a sheet record of that type.</li>
+</ul>
+<p>A spend that comes before the first step with a phase (and the envelope) is
+<strong>declared</strong> — seen from <code>preItemRoll</code>; one after such a step is seen from the
+phase after it, so a slot spent only on a hit is not seen before the roll.
+<code>is_target</code>, <code>is_caster</code>, <code>hit</code>, <code>attack_total</code>, <code>save_failed</code> stay flat names.
+The functions are valid only in an action with a <code>reaction</code> block — elsewhere
+the loader refuses them; dice formulas (damage, rolls) do not know them —
+compare in a branch. <code>source_cost_&lt;key&gt;</code> still reads (now the sum by key of
+every path, so it sees <code>cast_spell</code>&#39;s slot too) but is deprecated: the loader
+warns, read <code>source_spent_key(&#39;&lt;key&gt;&#39;)</code> or <code>source_spent(&#39;&lt;kind&gt;&#39;)</code>.</p>
+<p><strong>Cancel.</strong> <code>onAcceptCancel: P</code> in the quick flow spends what the source
+declared by <code>P</code> (the first <code>P</code> at or after the event that raised the reaction)
+— the envelope, the item&#39;s charges and the declared steps of its own price; a
+drain of its targets is what it does and is not applied, nor anything else;
+the source&#39;s card reads «Отменено: <reaction>» with those spends and the
+reaction&#39;s row. A reaction that could not pay when answered (its price short)
+cancels nothing. A reaction the master adds to a card by hand answers no event:
+its <code>source_*</code> functions read 0. <code>source_cost_&lt;key&gt;</code> does not count the turn the source&#39;s kind takes;
+<code>source_spent(&#39;action&#39;)</code> and the other turn kinds do. On an interactive card the master decides;
+the card shows what was declared as dashed chips.</p>
+<p>The reaction window shows its owner the source as the public card names it —
+«Культист · Огненный шар» with its spends by kind and rank (no remainder,
+never a master secret, nothing for a hidden source) — and «Ваша трата»: the
+reaction&#39;s own envelope and steps with the turn marker.</p>
+<p>An action cannot contain an arbitrary <code>hook</code> step. Imperative escape hatches
+break serialisability, static permission inspection, and replay. Runtime
+operations deliberately exposed by the engine route through the typed
+capability registry. See the engine design notes (not published) §3.3 and §7.</p>
+<h3>Capability step</h3>
+<p>Invoke a registered capability by id. Capabilities are TypeScript
+handlers declared in the engine with typed Zod inputs/outputs and a
+<strong>declared effects</strong> set (<code>pure | state-mutation | ui-notification | network | timer | random | admin</code>). Loader checks:</p>
+<ol>
+<li><code>ref</code> exists in the registry.</li>
+<li><code>args</code> keys present in <code>capability.inputs</code> schema.</li>
+<li><code>action.usableBy: &#39;owner&#39;</code> cannot invoke capabilities with <code>admin</code>
+effect.</li>
+</ol>
+<pre><code class="language-jsonc">{
+  &quot;type&quot;: &quot;capability&quot;,
+  &quot;ref&quot;: &quot;combat-tracker.advance-turn&quot;,
+  &quot;args&quot;: { &quot;combatId&quot;: &quot;{combat_id}&quot; },
+  &quot;captureAs&quot;: &quot;turn_info&quot;
+}
+</code></pre>
+<p>Arguments are formula expressions resolved against caster vars +
+captures. The interpreter (production) invokes the handler async
+fire-and-forget; captured output binds via <code>runtimeInputs[captureAs]</code>
+for downstream steps. Authors do <strong>not</strong> register capabilities — that
+happens in core code; manifest only references by id.</p>
+<h3>D&amp;D melee attack</h3>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;melee-attack&quot;,
+  &quot;label&quot;: { &quot;en&quot;: &quot;Melee Attack&quot; },
+  &quot;usableBy&quot;: &quot;owner&quot;,
+  &quot;targeting&quot;: { &quot;shape&quot;: &quot;single&quot;, &quot;range&quot;: 1, &quot;maxTargets&quot;: 1 },
+  &quot;steps&quot;: [
+    { &quot;type&quot;: &quot;roll&quot;, &quot;formula&quot;: &quot;1d20 + str_mod + proficiency_bonus&quot;, &quot;captureAs&quot;: &quot;atk&quot;, &quot;tags&quot;: [&quot;attack&quot;] },
+    {
+      &quot;type&quot;: &quot;branch&quot;,
+      &quot;cases&quot;: [
+        {
+          &quot;when&quot;: &quot;atk &gt;= target_ac&quot;,
+          &quot;then&quot;: [
+            { &quot;type&quot;: &quot;damage&quot;, &quot;formula&quot;: &quot;2d6 + str_mod&quot;, &quot;damageType&quot;: &quot;slashing&quot; }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</code></pre>
+<p>Predicate variables: caster&#39;s fields (flat: <code>str_mod</code>), target&#39;s fields
+prefixed with <code>target_</code> (<code>target_ac</code>), and captures from preceding steps
+(<code>atk</code> here, <code>saved</code> for save-then-branch, <code>result</code> for PbtA 2d6+stat).</p>
+<p><code>target_</code> covers <strong>every</strong> field and derived value of the first target, not
+only its defence: <code>target_save_dex</code>, <code>target_skill_athletics_bonus</code>,
+<code>target_passive_perception</code> — whatever the system&#39;s sheet declares. That is
+enough for a contest against a passive value: the roll <code>1d20 + skill_athletics_bonus</code>
+with <code>compare.threshold</code> <code>10 + target_skill_acrobatics_bonus</code> is a grapple
+resolved by the caster&#39;s dice alone. A threshold is deterministic (no dice),
+so a contest where the target also rolls is two steps today — the target&#39;s
+side goes through a <code>save</code>-style prompt — and not a single <code>compare</code>.</p>
+<p><code>when</code> uses the full deterministic expression language: arithmetic and
+parentheses (<code>RAW + spell_attack_mod &gt;= target_ac</code>,
+<code>(DONE - spell_attack_mod) == 20</code>), comparisons, and boolean <code>and</code>/<code>or</code>
+(<code>&amp;&amp;</code>/<code>||</code> aliases are accepted). A malformed expression fails closed and does
+not select the case.</p>
+<p>Attack branches may declare an explicit <code>outcome: &quot;hit&quot; | &quot;miss&quot;</code>. If one case
+declares it, every sibling case must do so. This separates control flow from the
+combat verdict: selecting a critical-failure or miss narration is no longer
+mistaken for a hit. Branches without outcomes remain valid for PbtA bands,
+resource routing, saves, and legacy stored actions.</p>
+<pre><code class="language-jsonc">&quot;steps&quot;: [
+  { &quot;type&quot;: &quot;roll&quot;, &quot;formula&quot;: &quot;1d20&quot;, &quot;captureAs&quot;: &quot;RAW&quot;, &quot;tags&quot;: [&quot;attack&quot;] },
+  {
+    &quot;type&quot;: &quot;branch&quot;,
+    &quot;cases&quot;: [
+      { &quot;when&quot;: &quot;RAW == 20&quot;, &quot;outcome&quot;: &quot;hit&quot;, &quot;then&quot;: [
+        { &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Critical: {RAW} + {spell_attack_mod} = {RAW + spell_attack_mod}&quot; },
+        { &quot;type&quot;: &quot;damage&quot;, &quot;formula&quot;: &quot;3&quot;, &quot;damageType&quot;: &quot;piercing&quot; }
+      ] },
+      { &quot;when&quot;: &quot;RAW == 1&quot;, &quot;outcome&quot;: &quot;miss&quot;, &quot;then&quot;: [
+        { &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Critical failure: {RAW}&quot; }
+      ] },
+      { &quot;when&quot;: &quot;RAW + spell_attack_mod &gt;= target_ac&quot;, &quot;outcome&quot;: &quot;hit&quot;, &quot;then&quot;: [
+        { &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Hit: {RAW} + {spell_attack_mod} vs AC {target_ac}&quot; },
+        { &quot;type&quot;: &quot;damage&quot;, &quot;formula&quot;: &quot;1&quot;, &quot;damageType&quot;: &quot;piercing&quot; }
+      ] },
+      { &quot;when&quot;: &quot;true&quot;, &quot;outcome&quot;: &quot;miss&quot;, &quot;then&quot;: [
+        { &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Miss: {RAW} + {spell_attack_mod} vs AC {target_ac}&quot; }
+      ] }
+    ]
+  }
+]
+</code></pre>
+<h3>Chat templates</h3>
+<p><code>chat.text</code> is evaluated when that step resolves. Its scalar presentation scope
+contains:</p>
+<ul>
+<li>action locals captured by preceding steps (<code>roll.captureAs</code>,
+<code>save.captureAs</code>, <code>prompt.id</code>, <code>compare.marginAs</code>, and <code>crit</code>);</li>
+<li>source fields without a prefix (<code>{hp}</code>, <code>{str_mod}</code>, <code>{ac}</code>);</li>
+<li>first-target fields with <code>target_</code> (<code>{target_hp}</code>, <code>{target_dex_mod}</code>,
+<code>{target_ac}</code>);</li>
+<li><code>{source_name}</code>, <code>{target_name}</code>, and <code>{target_count}</code> pseudo-fields.</li>
+</ul>
+<p>Captured locals win on a name collision. Actor values are effective values at
+the start of resolution (before this action applies its mutations), not a live
+post-damage read. They come from a separate non-owner presentation snapshot and
+are permission-filtered after effects and overrides are applied. Owner-only and
+master-only fields therefore stay unresolved instead of leaking from the
+master-authority mechanics context. Without a linked rule-system manifest only
+the name/count pseudo-fields are exposed, because there is no field visibility
+schema to evaluate.</p>
+<p>The syntax is the unified template runtime used by other presentation fields:</p>
+<pre><code class="language-jsonc">&quot;steps&quot;: [
+  { &quot;type&quot;: &quot;roll&quot;, &quot;formula&quot;: &quot;1d20&quot;, &quot;captureAs&quot;: &quot;RAW&quot;, &quot;tags&quot;: [&quot;attack&quot;] },
+  {
+    &quot;type&quot;: &quot;chat&quot;,
+    &quot;text&quot;: &quot;{source_name} ({hp}/{hp_max}) attacks {target_name} ({target_hp}/{target_hp_max}, AC {target_ac}): {RAW}&quot;
+  },
+  {
+    &quot;type&quot;: &quot;chat&quot;,
+    &quot;text&quot;: {
+      &quot;en&quot;: &quot;{if RAW == 20 then &#39;Critical hit&#39; else &#39;Ordinary hit&#39;} ({RAW})&quot;,
+      &quot;ru&quot;: &quot;{if RAW == 20 then &#39;Критическое попадание&#39; else &#39;Обычное попадание&#39;} ({RAW})&quot;
+    }
+  }
+]
+</code></pre>
+<ul>
+<li><code>{RAW}</code> substitutes a value.</li>
+<li><code>{RAW + bonus}</code> evaluates a pure expression when both captures exist.</li>
+<li><code>{if condition then value else value}</code> selects presentation text without
+changing action mechanics.</li>
+<li><code>\{</code> and <code>\}</code> render literal braces.</li>
+<li>An unknown variable stays visible (<code>{RAWW}</code>) instead of silently becoming
+zero, which makes chat useful for action debugging.</li>
+</ul>
+<p>Only values known during synchronous action resolution are available. A real
+async <code>capability</code> result is not visible to a later <code>chat</code> unless the caller
+pre-binds it through <code>runtimeInputs</code>.</p>
+<h3>PbtA move (hit / mixed / miss bands)</h3>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;hack-and-slash&quot;,
+  &quot;label&quot;: { &quot;en&quot;: &quot;Hack and Slash&quot; },
+  &quot;usableBy&quot;: &quot;owner&quot;,
+  &quot;steps&quot;: [
+    { &quot;type&quot;: &quot;roll&quot;, &quot;formula&quot;: &quot;2d6 + str&quot;, &quot;captureAs&quot;: &quot;result&quot; },
+    {
+      &quot;type&quot;: &quot;branch&quot;,
+      &quot;cases&quot;: [
+        { &quot;when&quot;: &quot;result &gt;= 10&quot;, &quot;then&quot;: [{ &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Strong hit.&quot; }] },
+        { &quot;when&quot;: &quot;result &gt;= 7&quot;,  &quot;then&quot;: [{ &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Mixed.&quot; }] },
+        { &quot;when&quot;: &quot;true&quot;,         &quot;then&quot;: [{ &quot;type&quot;: &quot;chat&quot;, &quot;text&quot;: &quot;Miss.&quot; }] }
+      ]
+    }
+  ]
+}
+</code></pre>
+<p><code>&#39;true&#39;</code> is the canonical fall-through predicate. An empty <code>when</code> also
+matches (since 2026-09-30, one semantics for all conditions — see «Одна
+семантика всех условий»); the loader still refuses it, write <code>true</code>.</p>
+<h3>D&amp;D save-half</h3>
+<pre><code class="language-jsonc">&quot;steps&quot;: [
+  {
+    &quot;type&quot;: &quot;save&quot;,
+    &quot;ability&quot;: &quot;dex&quot;,
+    &quot;dc&quot;: &quot;8 + int_mod + proficiency_bonus&quot;,
+    &quot;dispatcher&quot;: &quot;either&quot;,
+    &quot;captureAs&quot;: &quot;saved&quot;
+  },
+  {
+    &quot;type&quot;: &quot;damage&quot;,
+    &quot;formula&quot;: &quot;8d6&quot;,
+    &quot;damageType&quot;: &quot;fire&quot;,
+    &quot;rollMode&quot;: &quot;shared&quot;,
+    &quot;saveRule&quot;: { &quot;from&quot;: &quot;saved&quot;, &quot;factor&quot;: &quot;0.5&quot; }
+  }
+]
+</code></pre>
+<p><code>save</code> is never inferred from <code>targeting</code>: an area knows its geometry, but not
+the save ability or DC. Declare the step explicitly. New editor-created saves
+use <code>dispatcher: &quot;either&quot;</code>; omitted <code>dispatcher</code> remains master-owned for
+compatibility with stored actions. A target-owned token can roll through the
+pending combat card; an NPC falls back to the master.</p>
+<p><code>damage.rollMode</code> is exclusive: <code>shared</code> produces exactly one roll whose result
+is projected to every target, while <code>perTarget</code> produces exactly one roll per
+target and no group roll. Omitting it means <code>shared</code>. <code>saveRule.factor</code> is then
+applied to the corresponding shared projection or independent target result
+without rerolling damage.</p>
+<h3>Targeting</h3>
+<pre><code class="language-jsonc">&quot;targeting&quot;: {
+  &quot;shape&quot;: &quot;single&quot; | &quot;cone&quot; | &quot;circle&quot; | &quot;line&quot; | &quot;square&quot;,
+  &quot;range&quot;: 24,
+  &quot;size&quot;:  4,
+  &quot;angle&quot;: 60,
+  &quot;maxTargets&quot;: 1,
+  &quot;restrictions&quot;: { &quot;excludeSelf&quot;: true }   // optional; default false
+}
+</code></pre>
+<p><code>targeting</code> is <strong>optional</strong> — narrative actions (Inspire, Defy Danger
+without spatial constraint) omit it.</p>
+<p><code>range</code> / <code>long</code> use <code>rangeUnit: &#39;cells&#39; | &#39;feet&#39;</code> (default <code>cells</code>).
+<code>beyondNormal: &#39;disadvantage&#39;</code> contributes disadvantage in the long band;
+<code>&#39;none&#39;</code> leaves the decision to the action/system.</p>
+<p><code>restrictions.excludeSelf</code> (default <strong>false</strong>) controls whether the caster
+is a valid candidate. With the default, the caster is targetable and an
+<strong>area covering the caster hits them</strong> (Fireball damages its own caster if
+in blast). Set <code>true</code> for actions that must never affect their own source.
+The same policy gates both click picks and area hits — there is no separate
+per-surface behaviour. In the action editor it is the <strong>«Исключая себя» /
+«Exclude self»</strong> checkbox in the Targeting section.</p>
+<h3>Action menu groups</h3>
+<pre><code class="language-jsonc">&quot;actionGroups&quot;: [
+  {
+    &quot;id&quot;: &quot;spells&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Spells&quot;, &quot;ru&quot;: &quot;Заклинания&quot; },
+    &quot;sectionLabel&quot;: { &quot;en&quot;: &quot;Level {n}&quot;, &quot;ru&quot;: &quot;Круг {n}&quot; },
+    &quot;zeroSectionLabel&quot;: { &quot;en&quot;: &quot;Cantrips&quot;, &quot;ru&quot;: &quot;Заговоры&quot; },
+    &quot;icon&quot;: &quot;sparkles&quot;
+  }
+]
+</code></pre>
+<p>An action joins a submenu through <code>group: &quot;spells&quot;</code>; <code>groupOrder</code> sorts and
+feeds <code>{n}</code>; section 0 takes <code>zeroSectionLabel</code> when declared. Actions without a
+group remain in the ordinary list. A missing group reference does not hide the
+action; it falls back to the ordinary list. Actions a sheet record lends join a
+group by their record type&#39;s <code>actionGroup</code> (see Entry conventions).</p>
+<h3>Typed mutation steps</h3>
+<p>Replacement vocabulary for the dropped <code>hook</code> step. Each step emits a typed
+mutation record; the effect interpreter applies it to live state and returns
+a structured step result.</p>
+<pre><code class="language-jsonc">// Consume a spell slot — fails the action if slot is empty.
+{ &quot;type&quot;: &quot;consumeResource&quot;, &quot;resourceId&quot;: &quot;spell_slot_3&quot;, &quot;amount&quot;: &quot;1&quot; }
+
+// Restore HP fully on long rest.
+{ &quot;type&quot;: &quot;restoreResource&quot;, &quot;resourceId&quot;: &quot;hp&quot;, &quot;amount&quot;: &quot;max&quot; }
+
+// Reduce target dex by 2 (clamped at 0).
+{ &quot;type&quot;: &quot;modifyField&quot;, &quot;path&quot;: &quot;dex&quot;, &quot;op&quot;: &quot;add&quot;, &quot;value&quot;: &quot;-2&quot;,
+  &quot;target&quot;: &quot;each&quot; }
+
+// Ask the player which slot to upcast — each option names the slot it
+// spends; the choice window shows what is left of each.
+{ &quot;type&quot;: &quot;prompt&quot;, &quot;id&quot;: &quot;slot_level&quot;, &quot;kind&quot;: &quot;select&quot;,
+  &quot;label&quot;: { &quot;en&quot;: &quot;Slot level&quot; },
+  &quot;options&quot;: [
+    { &quot;value&quot;: 3, &quot;label&quot;: { &quot;en&quot;: &quot;3rd&quot; }, &quot;resource&quot;: &quot;spell_slot_3&quot; },
+    { &quot;value&quot;: 4, &quot;label&quot;: { &quot;en&quot;: &quot;4th&quot; }, &quot;resource&quot;: &quot;spell_slot_4&quot; },
+    { &quot;value&quot;: &quot;pact_magic_level&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Pact Magic&quot; },
+      &quot;valueFrom&quot;: &quot;field&quot;, &quot;resource&quot;: &quot;pact_magic&quot; }
+  ],
+  &quot;default&quot;: 3
+}
+// …and spend the chosen one: one step, not a branch per option.
+{ &quot;type&quot;: &quot;consumeResource&quot;, &quot;resourceFrom&quot;: &quot;slot_level&quot;, &quot;amount&quot;: &quot;1&quot; }
+</code></pre>
+<p><strong>Semantics</strong> (codified in the engine design notes (not published) §5.3):</p>
+<ul>
+<li><code>consumeResource</code> with insufficient <code>current</code> → step fails, action
+aborts. Wrap in <code>branch { when: &#39;resource &gt; 0&#39; }</code> for soft-fail.</li>
+<li><code>modifyField</code> <code>path</code> must reference a declared field (load-time check)
+and the action&#39;s <code>usableBy</code> must satisfy the field&#39;s scope
+<code>editableBy</code>.</li>
+<li><code>target: &#39;each&#39;</code> + downstream <code>branch</code> reading the same path → rejected
+at load (semantically incoherent for multi-target).</li>
+<li><code>prompt</code> is <strong>pre-flight</strong>: all prompts in an action&#39;s step tree are
+collected before any step runs.</li>
+</ul>
+    </section>
+
+    <section id="conditions-status-effects">
+<h2>14. Conditions — status effects</h2>
+
+<p>Each condition declares status tags (drive token icon overlays) and
+mechanical changes (drive field modifications through the sheet-effects
+pipeline).</p>
+<pre><code class="language-jsonc">&quot;conditions&quot;: [
+  {
+    &quot;id&quot;: &quot;blinded&quot;,
+    &quot;name&quot;: { &quot;en&quot;: &quot;Blinded&quot; },
+    &quot;description&quot;: { &quot;en&quot;: &quot;Auto-fail sight checks.&quot; },
+    &quot;icon&quot;: &quot;eye-off&quot;,
+    &quot;polarity&quot;: &quot;debuff&quot;,
+    &quot;changes&quot;: [
+      { &quot;key&quot;: &quot;flags&quot;, &quot;mode&quot;: &quot;set-flag&quot;, &quot;value&quot;: &quot;auto_fail_sight_checks&quot; },
+      { &quot;key&quot;: &quot;flags&quot;, &quot;mode&quot;: &quot;set-flag&quot;, &quot;value&quot;: &quot;disadvantage_attacks&quot; }
+    ],
+    &quot;statuses&quot;: [&quot;blinded&quot;]
+  }
+]
+</code></pre>
+<ul>
+<li><code>polarity</code> — <code>&#39;debuff&#39; | &#39;buff&#39; | &#39;neutral&#39;</code>. It decides where the status
+stands on a token in the standard layout: debuffs in the left column,
+buffs and neutral in the right. A condition without <code>polarity</code> counts as
+neutral, so set it on every condition that harms or helps. Neutral is for
+marks that are neither (Bloodied, concentration).</li>
+</ul>
+<h3>Status overlay — how a status is drawn over the token</h3>
+<p>A status is shown on a token in two ways. The <strong>marker</strong> is its badge in the
+token&#39;s status row — always there unless hidden. The <strong>overlay</strong> is drawn over
+the token itself: code (HTML/SVG and <code>&lt;style&gt;</code>), the platform&#39;s «portrait»
+(desaturation, darkening, tint, transparency) and three flags. A status
+declares its overlay in the catalog; the room may switch it off, pick a preset
+or write its own (status settings, «Исполнение»; the bridge — see
+the engine design notes (not published), «Room settings»).</p>
+<pre><code class="language-jsonc">&quot;conditions&quot;: [
+  { &quot;id&quot;: &quot;dead&quot;, &quot;...&quot;: &quot;…&quot;, &quot;overlay&quot;: { &quot;preset&quot;: &quot;death&quot; } },
+  {
+    &quot;id&quot;: &quot;petrified&quot;, &quot;...&quot;: &quot;…&quot;,
+    &quot;overlay&quot;: {
+      &quot;html&quot;: &quot;&quot;,
+      &quot;portrait&quot;: { &quot;desaturate&quot;: 1, &quot;tint&quot;: &quot;#c2b08a&quot;, &quot;tintAmount&quot;: 0.32 },
+      &quot;marker&quot;: &quot;show&quot;,
+      &quot;priority&quot;: 80
+    }
+  },
+  {
+    &quot;id&quot;: &quot;burning&quot;, &quot;...&quot;: &quot;…&quot;,
+    &quot;overlay&quot;: {
+      &quot;html&quot;: &quot;&lt;div class=\&quot;flames vtt-upright\&quot;&gt;…&lt;/div&gt;&lt;style&gt;.flames { … }&lt;/style&gt;&quot;,
+      &quot;portrait&quot;: { &quot;tint&quot;: &quot;#ff7a1a&quot;, &quot;tintAmount&quot;: 0.32 },
+      &quot;priority&quot;: 40
+    }
+  }
+]
+</code></pre>
+<p><code>overlay</code> is either <code>{ &quot;preset&quot;: &quot;&lt;id&gt;&quot; }</code> (and nothing else) or a full
+definition — an object with <code>html</code> is a definition whatever else it carries:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<th>Why the limit</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>html</code></td>
+<td>markup and <code>&lt;style&gt;</code>, up to 16 KB</td>
+<td>a hundred tokens parse it in every viewer&#39;s memory</td>
+</tr>
+<tr>
+<td><code>portrait.desaturate</code></td>
+<td>0…1</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>portrait.darken</code></td>
+<td>0…0.85</td>
+<td>darker, the portrait is not recognisable</td>
+</tr>
+<tr>
+<td><code>portrait.tint</code> + <code>tintAmount</code></td>
+<td><code>#rgb</code>/<code>#rrggbb</code>, 0…0.8</td>
+<td>stronger, the portrait is a flat fill</td>
+</tr>
+<tr>
+<td><code>portrait.opacity</code></td>
+<td>0.2…1</td>
+<td>fainter, the token is lost even to those who see it</td>
+</tr>
+<tr>
+<td><code>marker</code></td>
+<td><code>show</code> (default) / <code>hide</code></td>
+<td>the marker while the overlay is drawn</td>
+</tr>
+<tr>
+<td><code>evident</code></td>
+<td><code>true</code></td>
+<td>seen by players with the token&#39;s characteristics hidden</td>
+</tr>
+<tr>
+<td><code>suppressOthers</code></td>
+<td><code>true</code></td>
+<td>overlays of less important statuses are not drawn</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>0…100</td>
+<td>order in the stack, the centre, the tint</td>
+</tr>
+</tbody></table></div>
+<p><strong>Presets</strong> — data the platform ships, updated with it (changing a preset
+changes every system that names it): <code>death</code> (desaturate 1, darken 0.55, the
+status icon in the centre, marker hidden, evident, suppresses others, 100),
+<code>unconscious</code> (darken 0.2, icon in the centre, rising «z z z», marker hidden,
+evident, 90), <code>poison</code> (drops, green tint, 20), <code>burning</code> (flames, orange tint,
+40), <code>invisible</code> (ripples, opacity 0.45, 30), <code>web</code> (a cobweb, 35), <code>frost</code>
+(frost, half desaturation, blue tint, 45), <code>icon</code> (the icon in the centre,
+marker hidden, 15).</p>
+<p><strong>The code&#39;s box and inputs.</strong> The code is drawn in a shadow root over the
+token: coordinates are the token&#39;s box (0…100 %), a 25 % margin around it is
+visible, beyond it is cut. It never catches the pointer (<code>pointer-events</code> is
+removed). Inputs are variables on the host: <code>--token-size</code> (px),
+<code>--token-color</code>, <code>--status-color</code> (colours only — anything else is empty),
+<code>--status-stacks</code>, <code>--status-rounds</code> (integers, 0 — none), <code>--token-clip</code> (the
+token&#39;s form as <code>clip-path</code>), <code>--token-mask</code> (the picture&#39;s alpha for a
+shapeless token), <code>--tl-zoom</code> (the table&#39;s zoom: a constant on-screen width is
+<code>calc(2px / var(--tl-zoom))</code>); host attributes <code>data-shape</code>, <code>data-viewer</code>
+(<code>master</code>/<code>player</code>), <code>data-motion=&quot;reduce&quot;</code>, <code>data-lod=&quot;small&quot;</code>.
+Placeholders, filled after cleaning in the code&#39;s TEXT only: <code>{{icon}}</code> (the
+status icon with a dark halo), <code>{{icon:name}}</code> (any Lucide icon), <code>{{name}}</code>,
+<code>{{stacks}}</code>, <code>{{rounds}}</code>. In an attribute or a <code>&lt;style&gt;</code> a placeholder stays
+as written — numbers reach CSS through <code>var(--status-stacks)</code> /
+<code>var(--status-rounds)</code>. Platform classes: <code>vtt-body</code> (inside the token&#39;s form),
+<code>vtt-center</code> (the shared centre: one place 48 % of the side, two — 27 % each;
+a status that loses the centre gets its marker back), <code>vtt-halo</code> (an icon with
+a dark halo), <code>vtt-upright</code> (does not turn with the token&#39;s facing). Animate
+<code>transform</code> and <code>opacity</code>; on a small token and with «less motion» animations
+stand still.</p>
+<p><strong>What cleaning removes</strong> — at every viewer, at draw time, whoever wrote the
+code: scripts and event handlers; SMIL animation; <code>foreignObject</code>, frames,
+<code>use</code>, links, SVG <code>image</code>; pictures other than your own files and <code>data:</code>;
+an SVG <code>fill</code>, <code>stroke</code>, <code>mask</code> or <code>clip-path</code> that is not a plain colour
+(hex, <code>rgb()</code>/<code>hsl()</code>/<code>oklch()</code>… of numbers and units, a colour word, <code>none</code>),
+<code>url(#id)</code> of the same code with an optional fallback colour, or — for
+<code>clip-path</code> and <code>mask</code> — a basic shape (<code>circle()</code>, <code>ellipse()</code>, <code>inset()</code>,
+<code>polygon()</code>); a variable there goes too — set it in <code>style</code> (the browser
+reads these attributes as CSS, escapes included); addresses outside Rolebaza
+in styles, <code>@import</code>; <code>position: fixed/sticky</code> and <code>:host</code>; <code>pointer-events</code>
+and <code>all</code>; <code>filter</code> and <code>backdrop-filter</code> (re-run on every frame of an
+animation — use the portrait); code that keeps no element (a <code>&lt;style&gt;</code> alone
+draws nothing, and its status keeps its marker);
+over 200 elements or 16 KB — the whole code. An animation shorter than 0.34 s
+is lengthened to it (flashing more than three times a second is dangerous for
+photosensitive viewers); its length must be a number, not <code>var()</code>/<code>calc()</code>.
+Do not draw an outline of the token&#39;s form in code — the selection light and
+the turn ring are other layers.</p>
+<p><strong>Several statuses.</strong> Overlays stack, at most two layers of code; the most
+important one on top. A code overlay past the two is not drawn at all, its
+portrait neither; an overlay with no code (the portrait alone) takes no layer.
+If the most important drawn status suppresses others, it is drawn alone and
+their markers come back. Desaturation and darkening take the maximum, opacity
+the minimum, the tint is the most important one&#39;s. A marker leaves the row
+only while its overlay is drawn in full and the marker is hidden — a
+portrait-only overlay owns a channel only when it is the most important
+status setting the value shown, and keeps its marker unless it owns every
+channel it sets — so a status is never lost.</p>
+<p><strong>Who sees it.</strong> The overlay follows the status row&#39;s own ladder for the
+viewer: whoever does not see the row does not see the overlay; «evident»
+lifts only «characteristics hidden». «Скрыть подписи» puts overlays out for
+everyone. The initiative bar shows the portrait and the centre icon, not the
+free code. A token turns overlays off for itself in its status row («Оверлеи
+статусов на токене», <code>status-cluster</code> <code>config.overlays: false</code>).</p>
+<p><strong>The right to code.</strong> Writing or changing a full overlay definition in a
+system is the right of the Expert level (<code>status.overlay.author</code>): the server
+refuses the save (403, <code>PLAN_FORBIDDEN</code>, <code>capabilityKey: &quot;status.overlay.author&quot;</code>) when code appears or changes. Presets, keeping
+code, editing anything else, removing code and cloning a system with code
+need no right.</p>
+<p><strong>Central marks.</strong> A status-to-token overlay that takes the centre replaces
+a central <code>autoModifiers</code> mark of the same meaning (D&amp;D&#39;s skull): gate the
+mark with a predicate (<code>contains(&#39;active_conditions&#39;,&#39;dead&#39;) == 0</code>) rather
+than deleting its row — the ids of the rows after it would shift. D&amp;D&#39;s
+dying moon is not drawn under «Без сознания»
+(<code>… &amp;&amp; contains(&#39;active_conditions&#39;,&#39;unconscious&#39;) == 0</code>).</p>
+<h3>Change modes</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th><code>mode</code></th>
+<th>Value semantics</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>add</code></td>
+<td>number / formula</td>
+<td><code>+2</code></td>
+</tr>
+<tr>
+<td><code>multiply</code></td>
+<td>number / formula</td>
+<td><code>×0.5</code></td>
+</tr>
+<tr>
+<td><code>replace-base</code></td>
+<td>number / formula</td>
+<td>«Заменить»: новая БАЗА расчёта, бонусы поверх (латы: КД считается как 18)</td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td>number / string / boolean</td>
+<td>«Зафиксировать»: принудительный ИТОГ, бонусами не объезжается (Dead → hp 0)</td>
+</tr>
+<tr>
+<td><code>upgrade</code></td>
+<td>number / formula</td>
+<td>Floor at value (пол по базе, до прибавок)</td>
+</tr>
+<tr>
+<td><code>downgrade</code></td>
+<td>number / formula</td>
+<td>Cap at value (потолок итога, последним)</td>
+</tr>
+<tr>
+<td><code>set-flag</code></td>
+<td>flag name (string)</td>
+<td>Adds to flags array</td>
+</tr>
+<tr>
+<td><code>unset-flag</code></td>
+<td>flag name (string)</td>
+<td>Removes from flags array</td>
+</tr>
+<tr>
+<td><code>custom</code></td>
+<td>formula</td>
+<td>Pre-process via expression-eval</td>
+</tr>
+</tbody></table></div>
+<h3>Порядок применения и конфликты</h3>
+<p>Изменения одного поля сортируются по приоритету режима (меньший — раньше):</p>
+<pre><code>база листа
+  → custom 10 → replace-base 15 → multiply 20 → upgrade 25 → add 30
+  → override 50 → downgrade 70
+</code></pre>
+<ul>
+<li><strong><code>replace-base</code> против <code>add</code></strong>: замена идёт первой, прибавки ложатся
+сверху — латы «заменить 18» + щит «прибавить 2» = 20.</li>
+<li><strong>Несколько <code>replace-base</code> на одном поле</strong>: работает НАИБОЛЬШЕЕ
+вычисленное значение (как «надет лучший доспех»), порядок инвентаря не
+влияет; проигравший остаётся в разборе значения перечёркнутым с именем
+победителя. Ослабление («скорость становится 5») выражайте через
+<code>downgrade</code> — он режет итог последним и не соревнуется с заменами.</li>
+<li><strong><code>override</code></strong> бьёт всё, включая <code>replace-base</code>; вклады, которые он
+выбросил, в разборе перечёркнуты. Редактор предметов его не предлагает —
+он для состояний систем и особых эффектов.</li>
+<li>Явный <code>change.priority</code> переопределяет умолчание режима точечно.</li>
+<li>Legacy: записи предметов, сохранённые до раскола (mode <code>override</code> из
+прежнего «заменить»), читаются как <code>replace-base</code> в <code>sanitizeChange</code> /
+<code>readEquipDraft</code> и мигрируют при первом пересохранении.</li>
+</ul>
+<h3>Порядок вычисления полей — граф зависимостей</h3>
+<p>Формульные значения эффектов (<code>11 + dex_mod</code>) читают ЭФФЕКТИВНЫЕ значения
+полей, на которые ссылаются: конвейер строит граф зависимостей (узел —
+поле, ребро — имя в формуле) и вычисляет поля в топологическом порядке,
+как электронная таблица. Пояс «+4 к dex» доезжает до формулы доспеха
+через derived <code>dex_mod</code> на любой глубине цепочки. Правила:</p>
+<ul>
+<li><strong>самоссылка</strong> (формула эффекта на X читает X) — читает БАЗУ поля;</li>
+<li><strong>цикл</strong> между полями не решается по определению (язык тотален):
+участники считаются по пред-эффектному снапшоту детерминированно, а в
+<code>EffectiveSystemData.warnings</code> появляется <code>{ kind: &#39;cycle&#39;, fields }</code>.
+Участник — каждое поле клубка взаимных ссылок (компонента сильной
+связности), а не только лежащие на одном пути: итог не зависит от
+порядка предметов при любом числе полей в цикле;</li>
+<li><strong>ручной оверрайд мастера</strong> пришпиливает поле: оно становится
+константой графа и разрывает цикл через себя;</li>
+<li><strong>скрытое от игрока поле</strong> в формулах игрока остаётся сырым (базовым) —
+эффективное значение скрытого не утекает.</li>
+</ul>
+<h3>Условие изменения <code>when</code></h3>
+<p>2026-09-30. Любое изменение (у состояния, у предмета в «Пока надето», в
+шаге <code>timedEffect</code>, у эффекта токена) может нести <code>when</code> — условие по
+ЭФФЕКТИВНОМУ листу, которое перечитывается при каждом расчёте:</p>
+<pre><code class="language-jsonc">{ &quot;key&quot;: &quot;ac&quot;, &quot;mode&quot;: &quot;add&quot;, &quot;value&quot;: 1, &quot;when&quot;: &quot;dex &gt;= 14&quot; }
+</code></pre>
+<p>Плащ даёт +1 КД, пока ловкость не меньше 14, — считая пояс ловкости и
+любые другие вклады в <code>dex</code>. Правила:</p>
+<ul>
+<li><strong>Порядок.</strong> Имена из условия — рёбра того же графа полей: <code>dex</code>
+вычисляется раньше <code>ac</code>, порядок предметов в инвентаре не важен.
+Самоссылка (<code>ac &gt;= 12</code> у изменения КД) читает БАЗУ поля.</li>
+<li><strong>Невыполненное изменение</strong> не участвует в расчёте поля вовсе — ни в
+стекинге категорий, ни в соревновании <code>replace-base</code>. В разборе значения
+оно стоит перечёркнутым в конце с пометкой «условие не выполнено» и с
+величиной, которую дало бы, если бы условие выполнилось (посчитанной той
+же свёрткой: проигравшая замена назовёт победителя).</li>
+<li><strong>Условие с ошибкой</strong> (синтаксис, неизвестная функция, нечисловой ответ
+вроде бесконечности) ничего не даёт, лист не роняет и помечается
+«условие записано с ошибкой» — не путается с честно ложным.</li>
+<li><strong>Пусто, пробелы или <code>null</code></strong> — условия нет, изменение действует всегда.
+В манифесте пустой <code>when</code> — ошибка схемы: не пишите поле вовсе.</li>
+<li><strong>Поле, у которого все вклады выключены условиями</strong>, не считается
+изменённым: вместо акцентной точки разбора у него тихое полое кольцо, а
+разбор показывает выключенный бонус зачёркнутым с причиной.</li>
+<li><strong>Загрузчик</strong> отказывает на сломанном <code>when</code> и на неизвестных именах. У
+состояния ступень <code>n</code> в <code>when</code> запрещена (она только в <code>predicate</code>), у
+<code>timedEffect</code> запрещены захваты действия и <code>table_*</code>: условие читает лист
+позже, когда действия уже нет.</li>
+</ul>
+<p>Три похожих поля — не одно и то же:</p>
+<ul>
+<li><code>change.when</code> — живое условие по листу (этот раздел);</li>
+<li><code>change.predicate</code> у состояния — ступень <code>{n}</code> градуированного
+состояния, вычисляется при наложении (см. «Graded conditions»). Слияние с
+<code>when</code> запланировано (the engine design notes (not published) §5.2);</li>
+<li><code>itemRules[].when</code> — условие по полям самого ПРЕДМЕТА (<code>equipped</code>,
+<code>weight</code>), не персонажа.</li>
+</ul>
+<p>Состояние условия: выполнено / не выполнено / с ошибкой.</p>
+<h4>Одна семантика всех условий</h4>
+<p>С 2026-09-30 любое условие системы читается одинаково: <code>when</code> изменения,
+<code>itemRules[].when</code> и «пока надето, если…», <code>predicate</code> у чипов, модификаторов
+и видимости блоков, <code>autoWhen</code> вида листа, условия веток, полос результата и
+<code>when</code> шагов действий, <code>trigger.when</code> реакций, <code>stateRules[].when</code>, <code>where</code>
+разделов листа, <code>requires[].when</code> записей.</p>
+<ul>
+<li>Пусто, пробелы, <code>true</code> — выполнено; <code>false</code> — нет.</li>
+<li>Голое имя читает само значение: непустой список или текст, ненулевое
+число, <code>true</code> — выполнено; отсутствующее поле — нет.</li>
+<li>Иначе — значение выражения: число ≠ 0 (отрицательное тоже), непустая
+строка, <code>true</code>.</li>
+<li>Не вычисляется (синтаксис, неизвестная функция, бесконечность или NaN — из
+выражения или из поля по голому имени) — «записано с ошибкой»: не
+выполнено, а где есть место показать — показано.</li>
+</ul>
+<p>Что делать с пустым и с ошибкой, решает место, где условие стоит, — и только
+это. Правило состояния с пустым <code>when</code> не срабатывает (правило не задано, а не
+«всегда»: иначе недописанное «повержен» валило бы любое существо). Раздел
+листа с нечитаемым <code>where</code> запись не прячет. Требование записи без формулы или
+с нечитаемой формулой — «не проверено».</p>
+<p>Что это изменило (по данным прода — одно действие одного токена):</p>
+<ul>
+<li><strong>пустое или из пробелов условие ветки, полосы результата, <code>when</code> шага</strong>
+раньше не срабатывало никогда, теперь срабатывает всегда: пустая последняя
+ветка — это «иначе»;</li>
+<li>правила предметов, правила состояния и <code>where</code>: отрицательное число и
+непустая строка раньше были «ложью», теперь «истина»;</li>
+<li>голое имя списка или объекта в ветке, реакции, правиле предмета раньше
+читалось как 0, теперь «непустой — истина»;</li>
+<li>NaN и бесконечность раньше считались «истиной», теперь «записано с ошибкой»;</li>
+<li><code>predicate</code> из одних цифр (<code>1</code>) раньше читал поле с таким именем
+(«ложь»), теперь — число. Пишите <code>true</code> явно: загрузчик пустое условие не пропускает, но в
+действиях токенов оно встречается. Единственное отличие <code>predicate</code>: слово справа от
+сравнения, которого нет среди полей, читается как строка (<code>race == elf</code>).</li>
+</ul>
+<h3>Graded conditions (numericValue)</h3>
+<p>Conditions that scale (Exhaustion 1-6, Frightened N) use predicate-gated
+changes + severityTiers ladder.</p>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;exhaustion&quot;,
+  &quot;name&quot;: { &quot;en&quot;: &quot;Exhaustion&quot; },
+  &quot;icon&quot;: &quot;battery-warning&quot;,
+  &quot;polarity&quot;: &quot;debuff&quot;,
+  &quot;hasNumericValue&quot;: true,
+  &quot;changes&quot;: [
+    { &quot;key&quot;: &quot;flags&quot;, &quot;mode&quot;: &quot;set-flag&quot;, &quot;value&quot;: &quot;disadvantage_ability_checks&quot;, &quot;predicate&quot;: &quot;n &gt;= 1&quot; },
+    { &quot;key&quot;: &quot;speed&quot;, &quot;mode&quot;: &quot;multiply&quot;, &quot;value&quot;: 0.5, &quot;predicate&quot;: &quot;n &gt;= 2&quot; },
+    { &quot;key&quot;: &quot;flags&quot;, &quot;mode&quot;: &quot;set-flag&quot;, &quot;value&quot;: &quot;disadvantage_attacks&quot;, &quot;predicate&quot;: &quot;n &gt;= 3&quot; },
+    { &quot;key&quot;: &quot;hp_max&quot;,&quot;mode&quot;: &quot;multiply&quot;, &quot;value&quot;: 0.5, &quot;predicate&quot;: &quot;n &gt;= 4&quot; },
+    { &quot;key&quot;: &quot;speed&quot;, &quot;mode&quot;: &quot;override&quot;, &quot;value&quot;: 0, &quot;predicate&quot;: &quot;n &gt;= 5&quot; }
+  ],
+  &quot;severityTiers&quot;: [
+    { &quot;threshold&quot;: 5, &quot;severity&quot;: &quot;severe&quot; },
+    { &quot;threshold&quot;: 3, &quot;severity&quot;: &quot;warn&quot; },
+    { &quot;threshold&quot;: 0, &quot;severity&quot;: &quot;none&quot; }
+  ],
+  &quot;statuses&quot;: [&quot;exhaustion&quot;]
+}
+</code></pre>
+<ul>
+<li><code>predicate</code> evaluates against <code>{n: numericValue}</code>. Changes without a
+predicate always apply.</li>
+<li><code>severityTiers</code> highest-threshold-first; first match wins. Explicitly
+cover all reachable values (don&#39;t forget the low tier).</li>
+</ul>
+<h3>Stacking conditions (stacks)</h3>
+<p>A condition that piles up — poison from several bites, bleeding — declares
+<code>stacks</code>: <code>true</code> (no limit) or <code>{ &quot;max&quot;: 5 }</code>. Applying it again adds a stack
+to the one effect on the token instead of replacing it; the stacks are the
+same N a graded condition carries, so changes read them through <code>{N}</code> and
+predicates through <code>n</code>.</p>
+<pre><code class="language-jsonc">{
+  &quot;id&quot;: &quot;poisoned&quot;,
+  &quot;name&quot;: { &quot;en&quot;: &quot;Poisoned&quot;, &quot;ru&quot;: &quot;Отравлен&quot; },
+  &quot;icon&quot;: &quot;droplet&quot;,
+  &quot;polarity&quot;: &quot;debuff&quot;,
+  &quot;stacks&quot;: { &quot;max&quot;: 5 },
+  &quot;changes&quot;: [
+    { &quot;key&quot;: &quot;attack_bonus&quot;, &quot;mode&quot;: &quot;add&quot;, &quot;value&quot;: &quot;-{N}&quot; },
+    { &quot;key&quot;: &quot;speed&quot;, &quot;mode&quot;: &quot;add&quot;, &quot;value&quot;: -10, &quot;predicate&quot;: &quot;n &gt;= 3&quot; }
+  ],
+  &quot;statuses&quot;: [&quot;poisoned&quot;]
+}
+</code></pre>
+<ul>
+<li>One effect per condition on a token, whatever applies it: two casters&#39;
+poison is one poison with more stacks.</li>
+<li>The first application gives <code>addStacks</code> stacks (default 1); each next one
+adds that many, up to <code>max</code>. The duration restarts on each application
+unless the step says <code>refreshDuration: false</code> (see <code>effect</code> and
+<code>timedEffect</code> in the DSL reference).</li>
+<li>Switching the condition on by hand or by a state rule does not add stacks;
+the master changes the count on the token (the number on the badge, shown
+from two stacks; the statuses panel; the token menu).</li>
+<li>A <code>whileEffect</code> application (bound to a source effect) keeps its own effect
+and does not stack; a <code>captureAs</code> instance adds to the status like any
+other application, and its <code>whileEffect</code> dependents follow the merged effect.</li>
+<li><code>n</code> in a <code>predicate</code> is the condition&#39;s: its changes are re-derived for the
+count. A <code>timedEffect</code> reads stacks through <code>{N}</code> only.</li>
+<li><code>{N}</code> also reaches the condition&#39;s own round actions: <code>&quot;{N}d4&quot;</code> on three
+stacks rolls 3d4.</li>
+<li>Absent or <code>false</code> — re-applying replaces the effect, as before.</li>
+</ul>
+<h3>Duration</h3>
+<pre><code class="language-jsonc">&quot;defaultDuration&quot;: { &quot;type&quot;: &quot;rounds&quot;, &quot;value&quot;: 10 }
+&quot;defaultDuration&quot;: { &quot;type&quot;: &quot;permanent&quot; }
+&quot;defaultDuration&quot;: { &quot;type&quot;: &quot;until-event&quot;, &quot;event&quot;: &quot;concentration-broken&quot; }
+&quot;defaultDuration&quot;: { &quot;type&quot;: &quot;until-end-of-turn&quot;, &quot;trackedTokenId&quot;: &quot;shape:...&quot; }
+</code></pre>
+<p><code>&#39;until-event&#39;</code> is the generic primitive for D&amp;D concentration / rest /
+PbtA session-end / FATE scene-end / Blades downtime. The <code>event</code> string
+is system-defined; system can declare a <code>timeEvents[]</code> catalog for
+authoring-UI autocomplete.</p>
+    </section>
+
+    <section id="note-folders">
+<h2>15. Note folders</h2>
+
+<p>Sheet-side note grouping with canonical slots (ghost placeholders) and
+folder-specific extra fields.</p>
+<pre><code class="language-jsonc">&quot;noteFolders&quot;: [
+  {
+    &quot;id&quot;: &quot;personality&quot;,
+    &quot;name&quot;: { &quot;en&quot;: &quot;Personality&quot; },
+    &quot;icon&quot;: &quot;user&quot;,
+    &quot;order&quot;: 0,
+    &quot;isSystem&quot;: true,
+    &quot;defaultOwnership&quot;: &quot;all&quot;,
+    &quot;expectedSlots&quot;: [
+      { &quot;id&quot;: &quot;personality_traits&quot;, &quot;name&quot;: { &quot;en&quot;: &quot;Personality Traits&quot; } },
+      { &quot;id&quot;: &quot;ideals&quot;, &quot;name&quot;: { &quot;en&quot;: &quot;Ideals&quot; } }
+    ]
+  },
+  {
+    &quot;id&quot;: &quot;allies&quot;,
+    &quot;name&quot;: { &quot;en&quot;: &quot;Allies &amp; Contacts&quot; },
+    &quot;icon&quot;: &quot;users&quot;,
+    &quot;order&quot;: 10,
+    &quot;isSystem&quot;: true,
+    &quot;defaultOwnership&quot;: &quot;owner&quot;,
+    &quot;expectedFields&quot;: [
+      { &quot;key&quot;: &quot;role&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Role&quot; }, &quot;type&quot;: &quot;text&quot; }
+    ]
+  }
+]
+</code></pre>
+    </section>
+
+    <section id="sheet-layout">
+<h2>16. Sheet layout</h2>
+
+<p>Declarative tree of layout nodes. Replaces legacy <code>sheetHTML</code> string.
+Node types: <code>tabs / fieldGroup / pairedFieldGrid / resourceBar / row / col / heading / divider / html / collapsible / entryList / traitsList / actionsList / effectsList / portrait / progressBar / restControls / resourceList / conditionsList / equipmentSlots</code>. The <code>html</code> node is a deprecated escape
+hatch; prefer typed nodes for data-bearing content.</p>
+<h3><code>visibleIf</code> — a node only while a condition holds</h3>
+<p>Every layout node accepts <code>&quot;visibleIf&quot;</code>: a condition in the sheet&#39;s expression
+language (the language of derived fields) over the character&#39;s sheet data.</p>
+<pre><code class="language-json">{ &quot;type&quot;: &quot;resourceBar&quot;, &quot;resourceKey&quot;: &quot;laying_hands&quot;, &quot;presentation&quot;: &quot;compact&quot;, &quot;visibleIf&quot;: &quot;laying_hands_max &gt; 0&quot; }
+{ &quot;type&quot;: &quot;collapsible&quot;, &quot;title&quot;: { &quot;ru&quot;: &quot;Заклинания&quot; }, &quot;visibleIf&quot;: &quot;level_bard + level_druid &gt; 0&quot;, &quot;children&quot;: [ ... ] }
+</code></pre>
+<ul>
+<li>Not met — the node is gone for <strong>every viewer, the master included</strong>. It
+leaves its container, so no gap stays behind; a <code>collapsible</code>, <code>row</code> or <code>col</code>
+whose children are all hidden goes too (an authored empty one stays).
+An item of <code>tabs</code> has no <code>visibleIf</code> — hide its content instead.</li>
+<li>Each viewer&#39;s own data decides: a field or derived value the viewer may not
+see (<code>dataScopes</code>) reads as 0 for them, and <code>has_entry</code> sees only the
+entries they see — so a node can show for the master and not for a player.</li>
+<li>A condition that does not evaluate, or names something the sheet does not
+have (a typo in a field name), shows the node rather than hiding it. Both are
+reported at load: syntax by the <code>formula</code> stage, an unknown name by the
+<code>scope</code> stage with a suggestion, at path <code>…layout.….visibleIf</code> — in
+<code>sheetLayout</code>, <code>sheetVariants</code> and <code>table.layout</code> (the table&#39;s sheet reads
+the table&#39;s own fields).</li>
+<li>A bare name reads the value itself: <code>&quot;visibleIf&quot;: &quot;level_paladin&quot;</code> holds
+while it is non-zero. Names are the sheet&#39;s data: fields, the stored values
+of resources (<code>laying_hands_max</code> — not the resource&#39;s own id), status-track
+counts (<code>health_agg</code>) and derived values; <code>has_entry(&#39;slug&#39;)</code> reads the
+sheet&#39;s entries taken from a compendium (the table&#39;s sheet has none). Action-time names (<code>target_*</code>, captures) do not exist on a
+sheet. A field name given as text (<code>contains(&#39;field&#39;, …)</code>,
+<code>sum_matching(&#39;prefix&#39;)</code>) is not checked — a typo there reads as nothing.</li>
+<li>It decides presentation only: hidden fields keep their values, actions and
+formulas still read them.</li>
+</ul>
+<h3><code>entryList</code> — a section whose length belongs to the character</h3>
+<p>Renders the token&#39;s records of one <code>ListEntryType</code>. Use it wherever the SET of
+things is the character&#39;s own rather than the system&#39;s: Fate skills, stunts,
+aspects and consequences; anything a player should be able to add with <code>+</code>.</p>
+<pre><code class="language-jsonc">{ &quot;type&quot;: &quot;entryList&quot;, &quot;entryType&quot;: &quot;ability&quot;,
+  &quot;presentation&quot;: { &quot;kind&quot;: &quot;grid&quot; },
+  &quot;title&quot;: { &quot;en&quot;: &quot;Skills&quot; },
+  &quot;newEntry&quot;: { &quot;data&quot;: { &quot;value&quot;: 0 } } },
+
+{ &quot;type&quot;: &quot;entryList&quot;, &quot;entryType&quot;: &quot;condition&quot;, &quot;tag&quot;: &quot;aspect&quot;,
+  &quot;title&quot;: { &quot;en&quot;: &quot;Aspects&quot; },
+  &quot;newEntry&quot;: { &quot;tags&quot;: [&quot;aspect&quot;] } },
+
+{ &quot;type&quot;: &quot;entryList&quot;, &quot;entryType&quot;: &quot;condition&quot;, &quot;tag&quot;: &quot;consequence&quot;,
+  &quot;title&quot;: { &quot;en&quot;: &quot;Consequences&quot; },
+  &quot;newEntry&quot;: { &quot;tags&quot;: [&quot;consequence&quot;], &quot;data&quot;: { &quot;severity&quot;: &quot;mild&quot; } } }
+</code></pre>
+<ul>
+<li><strong><code>tag</code></strong> narrows the section to records carrying that tag, so several
+sections can share one record type. Reach for it before asking for a new
+<code>ListEntryType</code>: the vocabulary is closed, and two lists that differ only by
+taxonomy are what <code>tags</code> is for. An untagged section still shows tagged
+records — a tag narrows a section, it does not carve the record out of its
+type.</li>
+<li><strong><code>newEntry</code></strong> seeds what this section&#39;s <code>+</code> creates: <code>tags</code> (required when
+<code>tag</code> is set — the loader rejects the manifest otherwise, since new rows would
+fail their own filter) and <code>data</code> defaults layered over the convention&#39;s own
+<code>default</code> values.</li>
+<li><strong><code>presentation</code></strong> is the semantic renderer choice: <code>{ &quot;kind&quot;: &quot;list&quot; }</code>
+(the default for every existing manifest), <code>{ &quot;kind&quot;: &quot;grid&quot; }</code> for a
+compact responsive set such as Fate skills, or <code>{ &quot;kind&quot;: &quot;resources&quot; }</code>
+for editable personal counters (only with <code>entryType: &quot;resource&quot;</code>). The manifest does not declare
+columns, breakpoints or pixels; the shared renderer owns geometry and falls
+back to one column when the panel is narrow.</li>
+</ul>
+<p>Rows get a roll button when the record or its convention declares a roll — see
+<strong>Entry conventions → <code>roll</code></strong>.</p>
+<p><code>articles</code> (optional) names the compendium articles this section&#39;s <code>+</code> offers
+first — the same query as a field&#39;s, see <strong>Articles for fields and sections</strong>;
+<code>{key}</code> reads the stored values of the sheet. A section of any record type may
+declare it. Without it only two record types take articles: features list
+concepts, rules and custom articles first, the inventory objects first, and
+other types below. A picked article becomes a record of the section with the
+article&#39;s text — an <code>Action</code> or <code>Condition</code> article gives its text, not its
+mechanics. A <code>catalogue: true</code> section offers its own declared records, and a
+<code>resources</code> section has no <code>+</code> to offer from: neither takes <code>articles</code> (the
+loader rejects it).</p>
+<h3>Personal resources and inline field icons (2026-09-16)</h3>
+<p><code>{ &quot;type&quot;: &quot;entryList&quot;, &quot;entryType&quot;: &quot;resource&quot;, &quot;presentation&quot;: { &quot;kind&quot;: &quot;resources&quot; } }</code>
+uses the existing per-character entries, not a second resource store. The master
+creates/configures the name, maximum and recharge; the owner can edit the current
+amount. <code>newEntry</code> tags/data and convention defaults still apply. Old resource
+entries are not guessed or silently converted: the master configures their counter.</p>
+<p>The record stores <code>data.resourceKey</code> (generated <code>personal_</code> + 32 UUID hex digits),
+<code>current</code>, <code>max</code>, and <code>recharge</code> (<code>manual</code>, <code>short-rest</code>, <code>long-rest</code>, <code>dawn</code>).
+<code>entry-resources.ts</code> projects it into the ordinary ResourceDef catalog and two
+transient field names. Those fields are never persisted in token systemData.
+The action editor reads the explicit character subject&#39;s visible entries; its
+resource options show names, preserving keys through rename and reorder.
+Envelope costs, consume/restore steps and rest use the common resource contract;
+the world adapter redirects writes back to the entry. Group rest reads each
+recipient&#39;s catalog. Deleted personal references fail payment, rather than becoming
+free actions or orphan fields. Undo restores existing counters without resurrecting
+deleted entries. Copying a character copies its entries and references together;
+values remain scoped to that character. Arbitrary imported actions do not create
+missing personal resources.</p>
+<p>Fields may declare <code>icon</code> (Lucide name) and <code>iconColor</code> (six-digit hex semantic
+color). <code>fieldGroup</code> with <code>presentation: &quot;summary&quot;</code> displays a full label, icon,
+inline number and the field&#39;s <code>description</code> tooltip. D&amp;D currency uses this for
+coin metals and exchange rates; it wraps on narrow sheets instead of scrolling.</p>
+<p>The built-in D&amp;D sheet places spellcasting settings above slots in one fold,
+retaining the slots section&#39;s stable ID. This changes presentation only: additional
+class-specific casting configurations or pact-magic pools are not inferred.</p>
+<h3><code>pairedFieldGrid</code> — two related fields as one compact cell</h3>
+<p>Use this when two independently declared fields are read together in play.
+The primary field supplies the cell title and main value; both fields keep
+their own <code>derivedKey</code>, <code>rollFormula</code>, edit permission, and provenance hint.
+<code>dot-track</code> secondary fields render as an inline toggle. The grid wraps by its
+actual container width; <code>minCellWidth</code> (72–360, default 96) controls when.
+Each pair may override <code>label</code> / <code>secondaryLabel</code> for presentation without
+changing the referenced fields&#39; data identity.</p>
+<pre><code class="language-jsonc">{
+  &quot;type&quot;: &quot;pairedFieldGrid&quot;,
+  &quot;secondaryLabel&quot;: { &quot;en&quot;: &quot;save&quot;, &quot;ru&quot;: &quot;спас.&quot; },
+  &quot;minCellWidth&quot;: 88,
+  &quot;pairs&quot;: [
+    { &quot;primaryKey&quot;: &quot;str&quot;, &quot;secondaryKey&quot;: &quot;save_str_prof&quot; },
+    { &quot;primaryKey&quot;: &quot;dex&quot;, &quot;secondaryKey&quot;: &quot;save_dex_prof&quot; }
+  ]
+}
+</code></pre>
+<p>Pairing is explicit rather than positional: reordering either source
+<code>fieldGroup</code> cannot silently connect the wrong fields. Existing <code>grid-3</code> /
+<code>grid-6</code> field groups remain available when the values should stay separate.</p>
+<h3><code>collapsible</code> — folds children behind a clickable title bar</h3>
+<p>Wrap any sub-tree to hide it behind a title bar until the user opens
+it. Pair with a stable <code>id</code> so the renderer persists open/closed
+state to localStorage across reloads. <code>defaultOpen</code> (default <code>true</code>)
+sets the initial state when no preference is stored.</p>
+<pre><code class="language-jsonc">{
+  &quot;type&quot;: &quot;collapsible&quot;,
+  &quot;id&quot;: &quot;combat-section&quot;,
+  &quot;title&quot;: { &quot;en&quot;: &quot;Combat&quot;, &quot;ru&quot;: &quot;Бой&quot; },
+  &quot;defaultOpen&quot;: false,
+  &quot;children&quot;: [
+    { &quot;type&quot;: &quot;fieldGroup&quot;, &quot;groupId&quot;: &quot;combat&quot; },
+    { &quot;type&quot;: &quot;resourceBar&quot;, &quot;resourceKey&quot;: &quot;hp&quot; }
+  ]
+}
+</code></pre>
+<pre><code class="language-jsonc">&quot;sheetLayout&quot;: {
+  &quot;type&quot;: &quot;tabs&quot;,
+  &quot;tabs&quot;: [
+    {
+      &quot;id&quot;: &quot;stats&quot;,
+      &quot;label&quot;: { &quot;en&quot;: &quot;Stats&quot; },
+      &quot;children&quot;: [
+        { &quot;type&quot;: &quot;fieldGroup&quot;, &quot;groupId&quot;: &quot;abilities&quot; },
+        {
+          &quot;type&quot;: &quot;row&quot;,
+          &quot;children&quot;: [
+            { &quot;type&quot;: &quot;fieldGroup&quot;, &quot;groupId&quot;: &quot;saves&quot; },
+            { &quot;type&quot;: &quot;fieldGroup&quot;, &quot;groupId&quot;: &quot;combat&quot; }
+          ],
+          &quot;gap&quot;: 8
+        },
+        { &quot;type&quot;: &quot;resourceBar&quot;, &quot;resourceKey&quot;: &quot;hp&quot; }
+      ]
+    }
+  ]
+}
+</code></pre>
+<h4><code>row</code> из группы и полосы раскладывается сеткой</h4>
+<p>Строка ровно с двумя детьми, где первый — <code>fieldGroup</code> с <code>label-inline</code> или
+<code>value-inline</code> (и без <code>presentation</code>), а второй — <code>progressBar</code>, <code>resourceBar</code>
+или такая же группа, рисуется не флексом, а сеткой в 4 колонки (в узком
+контейнере — в 3, полоса занимает всю строку). Ячейки первой группы при этом
+становятся прямыми элементами сетки через <code>display: contents</code>, поэтому
+<strong>вложенные контейнеры внутри такой строки теряют свою рамку вместе с
+собственным <code>gap</code></strong>. На этом правиле стоят листы D&amp;D 5e SRD: там ряды «группа +
+полоса» выравниваются по колонкам между строками.</p>
+<p>Если строка нужна обычной, распознавание отключается явно:</p>
+<pre><code class="language-jsonc">{
+  &quot;type&quot;: &quot;row&quot;,
+  &quot;presentation&quot;: &quot;plain&quot;,
+  &quot;gap&quot;: 10,
+  &quot;children&quot;: [
+    { &quot;type&quot;: &quot;fieldGroup&quot;, &quot;groupId&quot;: &quot;defense&quot;, &quot;layoutOverride&quot;: &quot;value-inline&quot; },
+    { &quot;type&quot;: &quot;col&quot;, &quot;gap&quot;: 4, &quot;children&quot;: [ /* свой отступ здесь работает */ ] }
+  ]
+}
+</code></pre>
+<p><code>gap</code> есть только у <code>row</code> и <code>col</code>; у остальных узлов отступами управляет сама
+раскладка. Чтобы задать расстояние между детьми, оберните их в <code>row</code>/<code>col</code> — и
+помните про распознавание выше, иначе обёртка исчезнет.</p>
+<p>When <code>sheetLayout</code> is absent, the engine generates a default layout
+from <code>fieldGroups</code> ordering.</p>
+<p>In the system editor, this optional top-level value is the singleton
+<strong>Fallback sheet</strong> record on the <strong>Sheets</strong> page. It deliberately shares the
+page with <code>sheetVariants</code>: both use the same layout DSL, while the fallback is
+consulted only after variant resolution fails.</p>
+<p><code>sheetHTML</code> and <code>sheetTemplate</code> remain accepted for old systems. New systems
+should use <code>sheetLayout</code>/<code>sheetVariants</code>: typed nodes participate in reference
+validation, permissions, responsive composition, and editor tooling, while
+legacy markup cannot provide the same guarantees.</p>
+<h3>List, portrait, progress, and dashboard nodes</h3>
+<p>Four declarative replacements for the deprecated <code>html</code> escape hatch:</p>
+<pre><code class="language-jsonc">// Actions tab — invocable buttons filtered by usableBy + viewer role.
+{ &quot;type&quot;: &quot;actionsList&quot;, &quot;usableBy&quot;: &quot;owner&quot;,
+  &quot;title&quot;: { &quot;en&quot;: &quot;Actions&quot; },
+  &quot;emptyHint&quot;: { &quot;en&quot;: &quot;No actions available&quot; } }
+
+// Active effects with optional dismiss button.
+{ &quot;type&quot;: &quot;effectsList&quot;, &quot;showDismiss&quot;: true,
+  &quot;title&quot;: { &quot;en&quot;: &quot;Active effects&quot; } }
+
+// Image slot. imageKey defaults to &#39;portrait&#39;; fallbackKey kicks in
+// when primary is absent. If both fields are empty, a token sheet uses the
+// token&#39;s current image. aspect: &#39;square&#39; | &#39;portrait&#39; | &#39;landscape&#39;.
+{ &quot;type&quot;: &quot;portrait&quot;, &quot;imageKey&quot;: &quot;portrait&quot;, &quot;aspect&quot;: &quot;portrait&quot; }
+
+// Generic value/max bar for non-resource counters (XP, ammo, …).
+// For declared resources prefer resourceBar — it resolves through
+// ResourceDef.{current,max,temp}Key.
+{ &quot;type&quot;: &quot;progressBar&quot;, &quot;valueKey&quot;: &quot;xp&quot;, &quot;maxKey&quot;: &quot;xp_max&quot;,
+  &quot;label&quot;: { &quot;en&quot;: &quot;XP&quot; }, &quot;color&quot;: &quot;#a78bfa&quot; }
+</code></pre>
+<p>reference-stage validates <code>progressBar.{valueKey,maxKey}</code> and
+<code>portrait.{imageKey,fallbackKey}</code> against declared <code>fieldGroups</code>
+keys. <code>actionsList</code> reads <code>manifest.actions</code> filtered by <code>usableBy</code>
+and current viewer role; built-in dnd5e-srd renders all 6 declarative
+D&amp;D actions (rest / death-save / initiative / inspiration / cast-spell)
+through this node.</p>
+<p><code>actionsList</code>, <code>effectsList</code> and <code>conditionsList</code> accept
+<code>&quot;hideTitle&quot;: true</code> when an enclosing <code>collapsible</code>, tab or heading already
+owns the visible section name. <code>effectsList</code> also accepts
+<code>&quot;hideWhenEmpty&quot;: true</code>: use it for a technical sub-list inside a broader
+section so an empty pipeline does not create a second unexplained plate.
+These flags affect presentation only; stored actions, conditions and effects
+remain separate data domains.</p>
+<p>The dashboard nodes use existing manifest data rather than introducing new
+storage:</p>
+<ul>
+<li><code>restControls</code> renders buttons for action ids in <code>restIds</code>;</li>
+<li><code>resourceList</code> renders declared resources and may filter by <code>recharge</code> or
+omit ids through <code>exclude</code>. With <code>presentation</code> (<code>rows</code> / <code>grid</code>) a resource
+whose maximum is 0 is not shown as a row; whoever may edit that maximum
+(the master, the owner) can bring it back with «+ Добавить» when the list
+names its resources in <code>include</code>. <code>&quot;hideWhenEmpty&quot;: true</code> concerns the
+<strong>whole list</strong>, never single rows: when no row is shown, a list that is the
+content of a movable section (<code>col</code> with <code>sectionsId</code>) takes its section
+with it; elsewhere the list stays while its editor can still add a resource
+with «+ Добавить». To hide a list, a bar or a section by the character&#39;s
+data, use <code>visibleIf</code>;</li>
+<li><code>conditionsList</code> toggles ids from <code>conditions</code> in <code>activeKey</code> (default
+<code>active_conditions</code>);</li>
+<li><code>equipmentSlots</code> renders occupancy computed from <code>equipment</code> and item entries.</li>
+</ul>
+    </section>
+
+    <section id="sheet-variants">
+<h2>17. Sheet variants</h2>
+
+<p><code>sheetVariants</code> declares parallel layouts for the same system. Each record has
+a stable <code>id</code>, an <code>I18nLabel</code>, and a required <code>layout</code> using the same tree as
+<code>sheetLayout</code>. The master can select a variant explicitly for a token.</p>
+<pre><code class="language-jsonc">&quot;sheetVariants&quot;: [
+  {
+    &quot;id&quot;: &quot;vehicle&quot;,
+    &quot;label&quot;: { &quot;en&quot;: &quot;Vehicle&quot;, &quot;ru&quot;: &quot;Транспорт&quot; },
+    &quot;autoWhen&quot;: &quot;sheet_kind == &#39;vehicle&#39;&quot;,
+    &quot;defaultFor&quot;: &quot;manual&quot;,
+    &quot;layout&quot;: { &quot;type&quot;: &quot;col&quot;, &quot;children&quot;: [] }
+  }
+]
+</code></pre>
+<p>Resolution order is deterministic: a known explicit token selection, then the
+first matching <code>autoWhen</code>, then the first matching <code>defaultFor</code> (<code>player</code> or
+<code>creature</code>), then the legacy sheet fallback. <code>manual</code> is never selected by
+ownership. Predicates read effective base + derived token data and use the
+shared predicate language; dice, loops, I/O, and plugin calls are unavailable.</p>
+<p>Treat variant ids as durable references. Renaming or deleting one can leave
+existing tokens pointing at the old id; the editor warns about this but cannot
+count references across every room.</p>
+<p>The <strong>Sheets</strong> authoring page owns both <code>sheetVariants</code> and the optional
+top-level <code>sheetLayout</code>. The latter appears as one removable, non-duplicable
+fallback record rather than as a separate document.</p>
+    </section>
+
+    <section id="vision-catalogs">
+<h2>18. Vision catalogs</h2>
+
+<p>The optional <code>vision</code> block defines system-level vocabulary used by token and
+fog controls:</p>
+<ul>
+<li><code>senses</code> — darkvision, blindsight, tremorsense, and similar capabilities;</li>
+<li><code>profiles</code> — selectable token presets combining sight cones and senses;</li>
+<li><code>fogProfiles</code> — ambient light, range caps, and region modifiers;</li>
+<li><code>modifiers</code> — declarative changes to range or visibility tier;</li>
+<li><code>defaultGroups</code> — automatic observer-group membership;</li>
+<li><code>rangeUnit</code> and <code>defaultProfileId</code> — section defaults;</li>
+<li><code>rangeOrigin</code> — <code>edge</code> (default: range counts from the cells the token
+stands on) or <code>center</code> (from the token centre); the room and a fog zone may
+override it.</li>
+</ul>
+<pre><code class="language-jsonc">&quot;vision&quot;: {
+  &quot;rangeUnit&quot;: &quot;feet&quot;,
+  &quot;senses&quot;: [
+    { &quot;id&quot;: &quot;hearing&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Hearing&quot; }, &quot;mode&quot;: &quot;sense&quot; }
+  ],
+  &quot;profiles&quot;: [
+    {
+      &quot;id&quot;: &quot;blind-hearing&quot;,
+      &quot;label&quot;: { &quot;en&quot;: &quot;Blind · hearing 60 ft&quot; },
+      &quot;cones&quot;: [],
+      &quot;senses&quot;: [{ &quot;ref&quot;: &quot;hearing&quot;, &quot;range&quot;: 60 }]
+    }
+  ],
+  &quot;defaultProfileId&quot;: &quot;blind-hearing&quot;
+}
+</code></pre>
+<p><code>cones: []</code> explicitly means a sense-only profile: it receives no normal sight
+from the scene or zone. A sense with <code>mode: &quot;sense&quot;</code> ignores light and walls;
+<code>mode: &quot;see&quot;</code> still requires line of sight and illumination. Per-record
+<code>rangeUnit</code> overrides the section default. If a token references a removed or
+renamed profile, resolution uses a valid <code>defaultProfileId</code> before the engine
+fallback.</p>
+    </section>
+
+    <section id="distance-method">
+<h2>19. Distance method</h2>
+
+<p><code>distanceMethod</code> supplies the system default when the room/grid does not
+override it:</p>
+<ul>
+<li><code>chebyshev</code> — diagonal and orthogonal cell steps cost the same;</li>
+<li><code>alternating</code> — alternating diagonal cost;</li>
+<li><code>euclidean</code> — straight-line distance;</li>
+<li><code>manhattan</code> — orthogonal sum;</li>
+<li><code>hex</code> — hex-grid distance.</li>
+</ul>
+<p>Hex grids always use <code>hex</code>. Action and vision distances declared in <code>feet</code> are
+converted using the room grid&#39;s units-per-cell; <code>cells</code> stays engine-native.</p>
+    </section>
+
+    <section id="entry-conventions">
+<h2>20. Entry conventions</h2>
+
+<p>Declares the <code>entry.data</code> shape per <code>ListEntryType</code> so renderers surface compact
+chips, toggles, indicators, and detail fields without per-system TypeScript.
+The renderer maps each field&#39;s <code>displayAs</code> hint to a widget.</p>
+<pre><code class="language-jsonc">&quot;entryConventions&quot;: {
+  &quot;item&quot;: {
+    &quot;label&quot;: { &quot;en&quot;: &quot;Items&quot; },
+    &quot;fields&quot;: [
+      { &quot;key&quot;: &quot;weight&quot;,        &quot;type&quot;: &quot;number&quot;,  &quot;label&quot;: { &quot;en&quot;: &quot;Weight&quot; }, &quot;displayAs&quot;: &quot;chip&quot;, &quot;unit&quot;: { &quot;en&quot;: &quot;lb&quot; }, &quot;min&quot;: 0, &quot;default&quot;: 0 },
+      { &quot;key&quot;: &quot;equipped&quot;,      &quot;type&quot;: &quot;boolean&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Equipped&quot; }, &quot;displayAs&quot;: &quot;toggle-icon&quot;, &quot;icon&quot;: &quot;shirt&quot; },
+      { &quot;key&quot;: &quot;attuned&quot;,       &quot;type&quot;: &quot;boolean&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Attuned&quot; }, &quot;displayAs&quot;: &quot;toggle-icon&quot;, &quot;icon&quot;: &quot;sparkles&quot; },
+      { &quot;key&quot;: &quot;item_category&quot;, &quot;type&quot;: &quot;enum&quot;,    &quot;label&quot;: { &quot;en&quot;: &quot;Category&quot; }, &quot;displayAs&quot;: &quot;chip&quot;, &quot;options&quot;: [&quot;weapon&quot;, &quot;armor&quot;, &quot;gear&quot;, &quot;tool&quot;, &quot;consumable&quot;] },
+      { &quot;key&quot;: &quot;damage_roll&quot;,   &quot;type&quot;: &quot;formula&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Damage&quot; }, &quot;formulaHint&quot;: &quot;1d8+str_mod&quot; }
+    ]
+  },
+  &quot;spell&quot;: {
+    &quot;fields&quot;: [
+      { &quot;key&quot;: &quot;level&quot;,         &quot;type&quot;: &quot;number&quot;,  &quot;label&quot;: { &quot;en&quot;: &quot;Level&quot; }, &quot;displayAs&quot;: &quot;chip&quot;, &quot;prefix&quot;: { &quot;en&quot;: &quot;Lvl&quot; }, &quot;zeroLabel&quot;: { &quot;en&quot;: &quot;Cantrip&quot; }, &quot;min&quot;: 0, &quot;max&quot;: 9 },
+      { &quot;key&quot;: &quot;school&quot;,        &quot;type&quot;: &quot;enum&quot;,    &quot;label&quot;: { &quot;en&quot;: &quot;School&quot; }, &quot;options&quot;: [&quot;abjuration&quot;, &quot;conjuration&quot;, &quot;divination&quot;, &quot;enchantment&quot;, &quot;evocation&quot;, &quot;illusion&quot;, &quot;necromancy&quot;, &quot;transmutation&quot;] },
+      { &quot;key&quot;: &quot;concentration&quot;, &quot;type&quot;: &quot;boolean&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Concentration&quot; }, &quot;displayAs&quot;: &quot;toggle-icon&quot;, &quot;icon&quot;: &quot;brain&quot; }
+    ]
+  }
+}
+</code></pre>
+<p><strong>Field types:</strong> <code>number | text | textarea | boolean | enum | formula | duration | tag-list</code> (closed).</p>
+<p><strong>DisplayHint:</strong> <code>chip | toggle-icon | flag-when-on | inline-edit | details-only | hidden</code> (closed). <code>chip</code> accepts localized <code>unit</code>, <code>prefix</code>, and
+<code>zeroLabel</code>; enum fields accept <code>options</code> and localized <code>optionLabels</code>.
+Number fields may declare <code>integer: true</code>; <code>min</code>, <code>max</code> and <code>integer</code> are
+validated before a widget commits a new value. Existing out-of-range stored
+values remain readable and are never rewritten merely by opening the sheet.</p>
+<p><strong><code>dimsRow</code></strong> — set on ONE boolean field per convention to make the whole row
+render at lowered contrast while the value is true. Use it for &quot;spent this
+scene&quot; states (a Fate stunt, an invoked aspect): the row is the thing the table
+scans, so the row is what has to look spent. Without it players fall back to
+typing <code>(USED)</code> into the name.</p>
+<p><strong><code>lendsActionsWhen</code></strong> — when a record of the type lends its actions (<code>usable</code>:
+an item&#39;s, or a spell&#39;s taken from a book) to its owner: a condition over the
+record&#39;s fields.</p>
+<pre><code class="language-jsonc">&quot;spell&quot;: {
+  &quot;lendsActionsWhen&quot;: &quot;prepared or level == 0&quot;,
+  &quot;actionGroup&quot;: { &quot;id&quot;: &quot;spells&quot;, &quot;orderBy&quot;: &quot;level&quot; },
+  &quot;fields&quot;: [ /* level, prepared, … */ ]
+}
+</code></pre>
+<p>While it holds, the record&#39;s actions are in the sheet&#39;s actions list, on its
+row and in the token menu; while it does not (or does not evaluate), they are
+not, and the row is dimmed. Absent — the record always lends. Compare with
+<code>==</code>: a lone <code>=</code> does not parse, and the loader rejects the condition; every
+name in it must be a field of the type (a typo would read as 0). A gated
+record&#39;s actions are not dragged out: a copy on a screen button or a dice slot
+would keep working after the gate closes. <strong><code>actionGroup</code></strong> — the token menu&#39;s group
+(<code>actionGroups[].id</code>) for those actions, sectioned by the record&#39;s field
+<code>orderBy</code> (a spell by its circle; <code>zeroSectionLabel</code> names circle 0). The loader
+rejects an undeclared group and a field the type does not have. A lent action
+that changes nothing of its record runs at once like the token&#39;s own; one that
+spends its charges or transforms it (<code>onInvoke.transformTo</code>) goes past the
+master.</p>
+<p><strong><code>roll</code></strong> — a roll rule for the whole type, so a record added by hand is
+rollable without the player authoring a formula:</p>
+<pre><code class="language-jsonc">&quot;ability&quot;: {
+  &quot;label&quot;: { &quot;en&quot;: &quot;Skills&quot;, &quot;ru&quot;: &quot;Навыки&quot; },
+  &quot;fields&quot;: [
+    { &quot;key&quot;: &quot;value&quot;, &quot;type&quot;: &quot;number&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Rating&quot; }, &quot;displayAs&quot;: &quot;inline-edit&quot;, &quot;default&quot;: 0 }
+  ],
+  &quot;roll&quot;: { &quot;formula&quot;: &quot;4dF + value&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;{name}&quot; } }
+}
+</code></pre>
+<p>Precedence is specificity, not novelty: a record&#39;s own <code>hooks.roll</code> (written by
+statblock import) wins; otherwise the type rule applies. The formula resolves
+against <code>systemData + derived + the record&#39;s own data</code>, with the record layered
+LAST — so <code>value</code> means &quot;this record&#39;s value&quot; even when the system declares a
+field of the same name. <code>{name}</code> in the label expands to the record&#39;s name.</p>
+<p><strong>Field key:</strong> must match the same snake_case <code>DataKey</code> regex used by
+<code>fieldGroups[*].fields[*].key</code>.</p>
+<p>Convention is <strong>advisory</strong>, not enforced: entries can carry extra
+data fields not in the convention (forward-compat for homebrew).
+Undeclared keys render as raw key/value in details.</p>
+<h3>Compatibility for versionless entry data</h3>
+<p><code>ListEntry.data</code> predates per-entry version markers. A convention may declare a
+narrow scalar compatibility projection instead of hard-coding a system id in
+React:</p>
+<pre><code class="language-jsonc">&quot;legacyValueMaps&quot;: [{
+  &quot;sourceKey&quot;: &quot;refresh&quot;,
+  &quot;cases&quot;: {
+    &quot;fate-point&quot;: {
+      &quot;setIfMissing&quot;: { &quot;fate_point_cost&quot;: 1 },
+      &quot;unsetSource&quot;: true
+    }
+  }
+}]
+</code></pre>
+<p>The projection is read-only until the user edits a convention field. At that
+point the same sparse entry command writes the projected target and removes the
+consumed source. Explicit canonical values win. The loader rejects unknown
+targets, duplicate source rules, competing target writers and values that do
+not satisfy the target field&#39;s type/options/range. This mechanism deliberately
+does not support formulas or arbitrary predicates; a second complex case is a
+signal to design versioned entry migrations.</p>
+    </section>
+
+    <section id="equipment-slots">
+<h2>21. Equipment slots</h2>
+
+<p><code>equipment</code> declares where items can be equipped. It connects item entry data,
+the <code>equipmentSlots</code> layout node, and occupancy checks.</p>
+<pre><code class="language-jsonc">&quot;equipment&quot;: {
+  &quot;slotField&quot;: &quot;slot_id&quot;,
+  &quot;equippedField&quot;: &quot;equipped&quot;,
+  &quot;slots&quot;: [
+    {
+      &quot;id&quot;: &quot;main_hand&quot;,
+      &quot;label&quot;: { &quot;en&quot;: &quot;Main hand&quot; },
+      &quot;capacity&quot;: 1,
+      &quot;accepts&quot;: [&quot;weapon&quot;],
+      &quot;doll&quot;: { &quot;x&quot;: 0.2, &quot;y&quot;: 0.55, &quot;side&quot;: &quot;left&quot; }
+    },
+    {
+      &quot;id&quot;: &quot;wings&quot;,
+      &quot;label&quot;: { &quot;en&quot;: &quot;Wings&quot; },
+      &quot;when&quot;: &quot;has_wings != 0&quot;
+    }
+  ]
+}
+</code></pre>
+<p><code>slotField</code> is the key in item <code>entry.data</code> that stores a slot id.
+<code>equippedField</code> defaults to <code>equipped</code>. <code>accepts</code> lists item-category values;
+<code>when</code> sees effective sheet data. <code>doll</code> coordinates are accepted metadata,
+normalized to <code>0..1</code>; the current generic <code>equipmentSlots</code> renderer does not
+draw a character doll. This block is not related to root <code>slotLists</code>, which
+only positions token HUD badges.</p>
+    </section>
+
+    <section id="порядок-результатов-кубиков">
+<h2>22. Порядок результатов кубиков</h2>
+
+<p>Корневой ключ <code>diceResultOrder</code> управляет порядком <strong>вывода</strong> выпавших значений
+в чате, центральной плашке броска и разборе значений боевой карточки:</p>
+<pre><code class="language-json">&quot;diceResultOrder&quot;: &quot;desc&quot;
+</code></pre>
+<ul>
+<li><code>&quot;desc&quot;</code> — по убыванию; умолчание, если ключ отсутствует.</li>
+<li><code>&quot;asc&quot;</code> — по возрастанию.</li>
+<li><code>&quot;none&quot;</code> — сохранять порядок, полученный от парсера.</li>
+</ul>
+<p>Метки критов, успехов и отброшенных костей перемещаются вместе с числом.
+В групповых бросках перемещается весь подписанный результат группы;
+в пояснении со смешанными типами костей сортировка идёт внутри каждого
+отдельного блока типа. Для преимущества два набора остаются раздельными.
+Явная сортировка в формуле (<code>6d6sa</code>, <code>6d6sd</code>, также <code>6d6s</code>) имеет приоритет:
+если она присутствует, вывод всей формулы сохраняет порядок парсера.</p>
+<p>Настройка применяется при отображении, в том числе к уже записанным броскам.
+Она не меняет сумму, выбор keep/drop, сохранённые <code>rolls</code>, <code>diceMeta</code>,
+индексы критов или план 3D-анимации. Это поле системы правил, не <code>ActionDef</code>.</p>
+    </section>
+
+    <section id="панель-кубов">
+<h2>23. Панель кубов</h2>
+
+<p>Панель собирается из манифеста. <strong>Ключа нет вовсе — работает умолчание движка</strong>
+(d4…d100, количества 1…6, преимущество и взрыв), поэтому у системы, которой
+хватает обычных костей, здесь пусто.</p>
+<pre><code class="language-jsonc">&quot;dicePanel&quot;: {
+  &quot;rows&quot;: [
+    { &quot;id&quot;: &quot;duality&quot;, &quot;formula&quot;: &quot;2d12&quot;, &quot;glyph&quot;: &quot;⬡&quot;,
+      &quot;label&quot;: { &quot;ru&quot;: &quot;Двойственные&quot;, &quot;en&quot;: &quot;Duality&quot; } },
+    { &quot;id&quot;: &quot;d6&quot;,  &quot;die&quot;: &quot;d6&quot; },
+    { &quot;id&quot;: &quot;d12&quot;, &quot;die&quot;: &quot;d12&quot;, &quot;quantities&quot;: [1, 2, 3, 4] }
+  ],
+  &quot;modifiers&quot;: [
+    { &quot;kind&quot;: &quot;advantage&quot; },
+    { &quot;kind&quot;: &quot;explode&quot; },
+    { &quot;kind&quot;: &quot;term&quot;, &quot;id&quot;: &quot;hope&quot;, &quot;formula&quot;: &quot;+1d6&quot;,
+      &quot;label&quot;: { &quot;ru&quot;: &quot;Надежда +d6&quot;, &quot;en&quot;: &quot;Hope +d6&quot; } }
+  ],
+  &quot;shortcuts&quot;: [
+    { &quot;id&quot;: &quot;init&quot;, &quot;formula&quot;: &quot;1d20&quot;, &quot;icon&quot;: &quot;hourglass&quot;, &quot;color&quot;: &quot;#475569&quot;,
+      &quot;label&quot;: { &quot;ru&quot;: &quot;Инициатива&quot;, &quot;en&quot;: &quot;Initiative&quot; } }
+  ]
+}
+</code></pre>
+<h3>rows — что показывает панель</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Ряд с костью</th>
+<th>Ряд с формулой</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>обязателен, уникален в панели</td>
+<td>то же</td>
+</tr>
+<tr>
+<td><code>die</code></td>
+<td><code>d4</code>, <code>d20</code>, <code>d100</code>, <code>dF</code>, <code>d%</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>formula</code></td>
+<td>—</td>
+<td>любая формула из костей и чисел</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>берётся из <code>die</code></td>
+<td>обязателен</td>
+</tr>
+<tr>
+<td><code>quantities</code></td>
+<td>быстрые количества, по умолчанию <code>[1,2,3,4,5,6]</code></td>
+<td>неприменимо</td>
+</tr>
+<tr>
+<td><code>glyph</code></td>
+<td>—</td>
+<td>знак на кнопке, один-два символа</td>
+</tr>
+</tbody></table></div>
+<p>Ряд с костью даёт кнопку, быстрые количества и счётчик. Ряд с формулой даёт одну
+широкую кнопку: количество к двойственным костям и к <code>d616</code> неприменимо.</p>
+<p>Поля «показывать счётчик» нет. Он есть у каждого ряда с костью и отсутствует у
+ряда с формулой; настройка, которая всегда равна одному и тому же, — это не
+настройка, а лишний способ ошибиться.</p>
+<p>Кости судьбы в умолчании нет: её кидают системы семейства Fate, и они объявляют
+ряд сами — рядом с формулой (<code>&quot;formula&quot;: &quot;4dF&quot;</code>) или костью (<code>&quot;die&quot;: &quot;dF&quot;</code>).
+За столом с обычными костями ряд «Fudge» ничего не делает и сбивает. Где кость
+судьбы объявлена, подсказка кнопки объясняет её сама: грани −1, 0 и +1 и размах
+итога по количеству костей.</p>
+<p><strong>Монета</strong> (<code>&quot;die&quot;: &quot;dC&quot;</code>), наоборот, стоит в умолчании последним рядом: «орёл
+или решка» бросают за любым столом. Это честная двусторонняя кость с гранями
+<strong>0 и 1</strong>, поэтому <code>3dC</code> даёт от нуля до трёх. В формулах она пишется <code>dC</code>;
+строчное <code>dc</code> принимается только с количеством впереди, потому что голое <code>dc</code> —
+это переменная сложности с листа. Подсказку кнопки монета тоже носит свою, а на
+столе падает чеканной монетой с цифрой выпавшей стороны.</p>
+<p><strong>Сколько быстрых чисел увидит игрок, решает не только <code>quantities</code>.</strong> Ячейка
+числа имеет минимум и максимум ширины: на широкой панели ряд не растягивается
+гармошкой, на узкой числа не сжимаются в палочки — вместо этого их становится
+меньше, начиная с самых больших. Объявляйте <code>quantities</code> так, чтобы первые
+числа были самыми нужными: именно они переживут узкую панель.</p>
+<p>Начального значения у счётчика тоже нет: в покое он показывает ноль, то есть
+«ряда нет в наборе», и туда же возвращается после броска. Ряд, добавленный
+кнопкой кости, получает одну кость.</p>
+<p>Ряда константы в манифесте тоже нет: он есть всегда и берёт ровно те колонки,
+что количества костей. Константа — свойство броска, а не системы.</p>
+<h3>modifiers — переключатели над набором</h3>
+<ul>
+<li><code>advantage</code> — пара «преимущество / помеха» на существующем двойном броске;</li>
+<li><code>explode</code> — взрывные кости (постфикс <code>!</code>);</li>
+<li><code>term</code> — своё слагаемое к формуле: <code>{ kind, id, label, formula }</code>. Знак
+входит в запись (<code>+1d6</code>, <code>-2</code>); без знака читается как плюс. Состояние живёт
+в наборе панели и расходуется броском вместе с костями; хук не нужен.
+Переключатель влияет на бросок из панели, а не на бросок с листа персонажа.</li>
+</ul>
+<p><code>advantage</code> и <code>explode</code> — по одному на панель: два одинаковых переключателя
+означали бы два состояния одной настройки.</p>
+<p><strong>Умолчания у ключей независимые.</strong> Объявили <code>rows</code> — переключатели остались
+прежними (преимущество и взрыв). Чтобы убрать их совсем, напишите пустой
+массив: <code>&quot;modifiers&quot;: []</code>. Так у Fate.</p>
+<h3>shortcuts — стартовая раскладка быстрого вызова</h3>
+<p>Чипы раскладываются по свободным слотам при первом входе игрока и дальше
+принадлежат ему: он их двигает и убирает. Слотов десять, поэтому и чипов не
+больше десяти. <code>icon</code> — kebab-имя Lucide, <code>color</code> — hex.</p>
+<h3>Что проверяется при загрузке системы</h3>
+<p>Формулы панели разбирает настоящий парсер кубов <strong>в момент загрузки</strong>, а не при
+нажатии: иначе опечатка доживает до первого броска и выглядит как сломанная
+кнопка, а не как ошибка манифеста.</p>
+<ul>
+<li>формула обязана разбираться (<code>2d6 +</code> отклоняется);</li>
+<li><strong>переменные листа запрещены</strong>: <code>1d20 + str_mod</code> отклоняется. У панели нет
+токена, подставлять их не из чего — такому место в действии персонажа;</li>
+<li><code>d[имя]</code> обязано ссылаться на объявленный <code>diceTypes</code>;</li>
+<li>на именованный терм нельзя вешать модификаторы броска (<code>d[marvel]!</code>).</li>
+</ul>
+<h3>hidden — панель не нужна этой системе</h3>
+<pre><code class="language-jsonc">&quot;dicePanel&quot;: { &quot;hidden&quot;: true }
+</code></pre>
+<p>Гаснут кнопка кубов в доке мастера и слот «Кубы» у игрока. Виджет «Кубы» на
+странице живых виджетов не гаснет: у него нет ни стола, ни системы.</p>
+    </section>
+
+    <section id="floating-combat-text">
+<h2>24. Floating combat text</h2>
+
+<pre><code class="language-jsonc">&quot;fct&quot;: {
+  &quot;enabled&quot;: true,
+  &quot;duration&quot;: 2800,
+  &quot;fontSize&quot;: 18,
+  &quot;fontFamily&quot;: &quot;Georgia, serif&quot;,
+  &quot;fontWeight&quot;: 700,
+  &quot;colors&quot;: {
+    &quot;damage&quot;: &quot;#e04040&quot;,
+    &quot;heal&quot;:   &quot;#40c060&quot;,
+    &quot;crit&quot;:   &quot;#ffcc00&quot;
+  }
+}
+</code></pre>
+    </section>
+
+    <section id="system-fx-defaults">
+<h2>25. System FX defaults</h2>
+
+<p><code>fx</code> provides system-wide defaults for combat visual effects. Per-action
+<code>presentation[]</code> cues override these values.</p>
+<pre><code class="language-jsonc">&quot;fx&quot;: {
+  &quot;variant&quot;: &quot;glow&quot;,
+  &quot;reactions&quot;: {
+    &quot;fire&quot;: &quot;embers&quot;,
+    &quot;cold&quot;: &quot;frost&quot;
+  },
+  &quot;defaults&quot;: {
+    &quot;melee&quot;: &quot;melee&quot;,
+    &quot;ranged&quot;: &quot;projectile&quot;,
+    &quot;byShape&quot;: { &quot;cone&quot;: &quot;aoe-cone&quot;, &quot;circle&quot;: &quot;aoe-circle&quot; }
+  }
+}
+</code></pre>
+<p>Reaction keys are the system&#39;s damage-type ids. Unknown types use the engine
+fallback. The closed archetype/reaction vocabulary and per-action anchors are
+listed in <code>/action-dsl-reference.json</code> under <code>contract.nestedTypes.FxPresentation</code>; what is not there does not exist.</p>
+    </section>
+
+    <section id="imperative-hook-references-deprecated">
+<h2>26. Imperative hook references (deprecated)</h2>
+
+<blockquote>
+<p><strong>Deprecated.</strong> No built-in system uses this slot. New systems should use
+deterministic formulas, lookup formulas, typed action steps, and registered
+capabilities instead. See the engine design notes (not published) §8.3 for the principle.</p>
+</blockquote>
+<p>Legacy shape (still accepted and resolved by the loader):</p>
+<pre><code class="language-jsonc">&quot;hooks&quot;: {
+  &quot;computeDerivedHook&quot;:   &quot;system-id&quot;,
+  &quot;computeModifiersHook&quot;: &quot;system-id&quot;,
+  &quot;transformRollHook&quot;:    &quot;system-id&quot;,
+  &quot;formatRollResultHook&quot;: &quot;system-id&quot;
+}
+</code></pre>
+<p>Resolution happens at load (pipeline stage 7) via <code>getSystemHooks()</code>.</p>
+<p><strong>Do not introduce new uses.</strong> Routes for derivations that can&#39;t be
+expressed in pure Formula DSL:</p>
+<ol>
+<li>Fold into data (a stored field), if the value is
+set-once at entity creation.</li>
+<li>Use a declarative <code>match</code>/<code>lookup</code> formula for a finite table.</li>
+<li>Use a registered capability only when the core engine deliberately exposes
+one with a typed contract.</li>
+</ol>
+    </section>
+
+    <section id="migrations">
+<h2>27. Migrations</h2>
+
+<p>When a system bumps its own version (<code>&#39;1.0&#39; → &#39;1.1&#39;</code>), declare the
+diff inline so existing rooms upgrade safely.</p>
+<pre><code class="language-jsonc">&quot;migrations&quot;: [
+  {
+    &quot;fromVersion&quot;: &quot;1.0&quot;,
+    &quot;toVersion&quot;: &quot;1.1&quot;,
+    &quot;operations&quot;: [
+      { &quot;kind&quot;: &quot;rename&quot;,    &quot;fromKey&quot;: &quot;str&quot;, &quot;toKey&quot;: &quot;strength&quot; },
+      { &quot;kind&quot;: &quot;add&quot;,       &quot;key&quot;: &quot;wisdom&quot;, &quot;default&quot;: 10 },
+      { &quot;kind&quot;: &quot;remove&quot;,    &quot;key&quot;: &quot;obsolete_field&quot; },
+      { &quot;kind&quot;: &quot;transform&quot;, &quot;key&quot;: &quot;speed&quot;, &quot;expr&quot;: &quot;speed * 5&quot; }
+    ]
+  }
+]
+</code></pre>
+<p>Operations:</p>
+<ul>
+<li><code>rename</code> — value preserved, key path changes.</li>
+<li><code>add</code> — new key with default value.</li>
+<li><code>remove</code> — drop key entirely.</li>
+<li><code>transform</code> — recompute value through expression-eval formula.</li>
+</ul>
+<p><code>operations: []</code> is a valid explicit no-op edge. Use it when a system content
+version changes but flat <code>systemData</code> does not: the version marker advances and
+the migration graph remains continuous without inventing a fake write.</p>
+<p>Engine-level migrations (changes to <code>EffectDuration</code> shape, etc.) live
+in core code, not in manifests.</p>
+    </section>
+
+    <section id="time-event-catalog">
+<h2>28. Time-event catalog</h2>
+
+<p><code>timeEvents</code> supplies known ids and localized labels for
+<code>{ &quot;type&quot;: &quot;until-event&quot;, &quot;event&quot;: &quot;...&quot; }</code> durations.</p>
+<pre><code class="language-jsonc">&quot;timeEvents&quot;: [
+  { &quot;id&quot;: &quot;concentration-broken&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Concentration broken&quot; } },
+  { &quot;id&quot;: &quot;scene-end&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;End of scene&quot; } }
+]
+</code></pre>
+<p>It drives authoring autocomplete; it is not a runtime whitelist. Existing
+event strings remain valid even if they are not catalogued.</p>
+    </section>
+
+    <section id="preview-fixture-metadata">
+<h2>29. Preview fixture metadata</h2>
+
+<p><code>editorMeta</code> is an opaque editor-only namespace. Runtime ignores it. The
+current Preview reads <code>_previewSeed.systemData</code> and <code>_previewSeed.entries</code>:</p>
+<pre><code class="language-jsonc">&quot;editorMeta&quot;: {
+  &quot;_previewSeed&quot;: {
+    &quot;systemData&quot;: { &quot;hp&quot;: 8, &quot;hp_max&quot;: 12, &quot;power&quot;: 14 },
+    &quot;entries&quot;: []
+  }
+}
+</code></pre>
+<p>Use it to make Preview demonstrate non-empty sheets. It does not seed actors
+created in a room and is never a gameplay default.</p>
+    </section>
+
+    <section id="overlay-homebrew-on-top-of-base">
+<h2>30. Overlay (homebrew on top of base)</h2>
+
+<p>A homebrew manifest is a JSON Patch (RFC 6902) array applied to a base.</p>
+<pre><code class="language-jsonc">{
+  &quot;schemaVersion&quot;: &quot;1.0&quot;,
+  &quot;id&quot;: &quot;my-homebrew&quot;,
+  &quot;name&quot;: &quot;My D&amp;D tweaks&quot;,
+  &quot;version&quot;: &quot;0.1&quot;,
+  &quot;baseSystemId&quot;: &quot;dnd5e-srd&quot;,
+  &quot;expectedBaseSystemVersion&quot;: &quot;1.0&quot;,
+
+  // Top-level definition becomes a JSON Patch array in DB storage:
+  // (loaded as `loadManifest(patch, { base: parsedBase })`)
+}
+</code></pre>
+<p>Patch operations: <code>add / remove / replace / copy / move / test</code>.</p>
+<pre><code class="language-jsonc">[
+  { &quot;op&quot;: &quot;replace&quot;, &quot;path&quot;: &quot;/fieldGroups/0/fields/2/max&quot;, &quot;value&quot;: 30 },
+  { &quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/conditions/-&quot;, &quot;value&quot;: { ... new condition ... } },
+  { &quot;op&quot;: &quot;remove&quot;, &quot;path&quot;: &quot;/autoModifiers/3&quot; }
+]
+</code></pre>
+<p>Engine compares <code>expectedBaseSystemVersion</code> with the current base
+version on load and applies semver policy:</p>
+<ul>
+<li>patch updates auto-apply.</li>
+<li>minor updates apply only if <code>re-validate(composed)</code> succeeds.</li>
+<li>major updates require a manual migration step.</li>
+</ul>
+    </section>
+
+    <section id="bonus-categories">
+<h2>31. Bonus categories</h2>
+
+<p>Typed bonus stacking — D&amp;D-style &quot;status bonuses don&#39;t stack with status
+bonuses of the same name&quot;.</p>
+<pre><code class="language-jsonc">&quot;bonusCategories&quot;: [
+  { &quot;id&quot;: &quot;status&quot;,       &quot;label&quot;: { &quot;en&quot;: &quot;Status&quot; },       &quot;stacking&quot;: &quot;max-one&quot; },
+  { &quot;id&quot;: &quot;circumstance&quot;, &quot;label&quot;: { &quot;en&quot;: &quot;Circumstance&quot; }, &quot;stacking&quot;: &quot;max-one&quot; },
+  { &quot;id&quot;: &quot;item&quot;,         &quot;label&quot;: { &quot;en&quot;: &quot;Item&quot; },         &quot;stacking&quot;: &quot;max-one&quot; }
+]
+</code></pre>
+<p>Effect changes reference categories by id (<code>bonusCategory: &#39;status&#39;</code>). The
+sheet-effects pipeline groups numeric changes by category + target field +
+mode, then applies <code>add</code>, <code>max-one</code>, or <code>min-one</code>. Unknown/omitted category ids
+keep ordinary additive behaviour. <code>priority</code> is accepted as category metadata,
+but the current resolver orders surviving changes by each change&#39;s own
+<code>priority</code>; category priority does not change the result yet.</p>
+    </section>
+
+    <section id="validation-pipeline-what-happens-on-load">
+<h2>32. Validation pipeline (what happens on load)</h2>
+
+<p>Each manifest goes through 8 stages. Stage 1-3 fail-fast (structure
+broken → nothing to check). Stages 4-8 accumulate errors; the author
+sees every issue in one fix-cycle.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Validates</th>
+<th>Error kind</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. parse</td>
+<td>JSON syntax</td>
+<td><code>parse</code></td>
+</tr>
+<tr>
+<td>2. Zod</td>
+<td>shape, types, regexes, enum values, required fields</td>
+<td><code>shape</code></td>
+</tr>
+<tr>
+<td>3. overlay (optional)</td>
+<td>JSON Patch applies cleanly + composed shape Zod-valid</td>
+<td><code>patch</code>, <code>shape</code></td>
+</tr>
+<tr>
+<td>4. references</td>
+<td>derivedKey / scopeId / sheetLayout / resourceId / modifyField.path refs resolve (path — поле или ключ ресурса: current/max/temp, ступени каскада); usableBy×scope compatibility</td>
+<td><code>reference</code></td>
+</tr>
+<tr>
+<td>5. formulas</td>
+<td>derivedFields / action formulas / condition predicates parse</td>
+<td><code>formula</code></td>
+</tr>
+<tr>
+<td>6. scope</td>
+<td>all <code>{var}</code> references resolve in visible environment</td>
+<td><code>scope</code></td>
+</tr>
+<tr>
+<td>7. DAG</td>
+<td>derivedFields topo-sort terminates, no cycles</td>
+<td><code>dag</code></td>
+</tr>
+<tr>
+<td>8. hooks</td>
+<td>legacy <code>hooks.*Hook</code> refs resolve to registered impls</td>
+<td><code>hook</code></td>
+</tr>
+</tbody></table></div>
+<p>For canonical pipeline architecture see the engine design notes (not published) §4.</p>
+    </section>
+
+    <section id="quick-reference-writing-a-new-system">
+<h2>33. Quick reference: writing a new system</h2>
+
+<ol>
+<li>Pick a stable <code>id</code> (used in URLs, storage, references).</li>
+<li>Sketch <code>fieldGroups</code> — what data does a character carry?</li>
+<li>Add <code>resources</code> for current/max counters (HP, stress, …).</li>
+<li>Add <code>derivedFields</code> for computed values that other fields read.</li>
+<li>Add <code>dataScopes</code> if some fields are master-only / hidden-from-owner.</li>
+<li>Add <code>actions</code> — what does a character DO in this game?</li>
+<li>Add <code>conditions</code> — what status effects exist?</li>
+<li>Add <code>sheetVariants</code> on <strong>Sheets</strong>; add its optional fallback record only when
+unmatched tokens need an explicit <code>sheetLayout</code>. Verify player/creature selection.</li>
+<li>Add shared <code>catalogs</code>, <code>entryConventions</code>, and <code>equipment</code> when the sheet has
+structured items or spells.</li>
+<li>Add <code>vision</code> profiles and test them in an actual player view.</li>
+<li>Put representative Preview data in <code>editorMeta._previewSeed</code>.</li>
+<li>Run the full loader validation, then test owner/master/other permissions in
+a room before publishing the system.</li>
+<li>Load it through <code>loadManifest(json)</code> — read the errors, iterate.</li>
+</ol>
+<p>For agents: fetch this doc + JSON schema (via <code>exportManifestJsonSchema()</code>)</p>
+<ul>
+<li>a sample built-in (e.g. <code>dnd5e-srd.json</code>) and generate a manifest by
+example.</li>
+</ul>
+<h3>Compact field tables</h3>
+<p><code>fieldGroup.layout</code> or a sheet node’s <code>layoutOverride: &quot;table&quot;</code> renders each
+field as a name/value row with right-aligned numbers and subtle row dividers.
+Groups use two columns from 420 px of available width and one below that.
+Editing, permissions and calculated-value explanations use the normal field
+controls. The built-in D&amp;D PC and NPC sheets use this for senses and movement.</p>
+<h3>List section headers</h3>
+<p>A <code>collapsible</code> containing one direct <code>entryList</code>, <code>actionsList</code>,
+<code>conditionsList</code> or <code>traitsList</code> shows its current count in the header, including
+zero. Counts follow the resolved list: action kind and viewer filtering, active
+conditions (including custom ones), and selected trait IDs. The same count
+appears when the section is grouped into a tab. Multiple independent lists
+keep their own headings rather than receiving an ambiguous combined count.
+For a single list, the section header also hosts the add command; conditions
+and traits retain their existing picker, permissions and editing callbacks.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Ролебаза · Страница собрана из источников репозитория скриптом сборки; править вручную нельзя. При расхождении прозы с машинным контрактом истинен контракт.
+</footer>
+</body>
+</html>
