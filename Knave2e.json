@@ -1,14 +1,11 @@
 {
   "schemaVersion": "1.0",
   "id": "knave-2e",
-  "name": {
-    "en": "Knave 2e",
-    "ru": "Knave 2e"
-  },
-  "version": "1.0.1",
+  "name": { "en": "Knave 2e", "ru": "Knave 2e" },
+  "version": "1.1.0",
   "description": {
-    "en": "Knave 2nd Edition OSR rules",
-    "ru": "Правила OSR Knave 2-й редакции"
+    "en": "Knave 2nd Edition OSR rules: player character sheet (careers, level/XP, AC from armor, HP and inventory slots). Creature sheet is not included yet.",
+    "ru": "Правила OSR Knave 2-й редакции: лист персонажа (карьеры, уровень и опыт, КД из ОД, ОЗ и слоты инвентаря). Лист существа пока не сделан."
   },
   "fieldGroups": [
     {
@@ -16,9 +13,28 @@
       "label": { "en": "Identity", "ru": "Личность" },
       "layout": "value-inline",
       "fields": [
-        { "key": "level", "label": { "en": "Level", "ru": "Уровень" }, "type": "number", "min": 1, "max": 10, "default": 1 },
-        { "key": "xp", "label": { "en": "XP", "ru": "Опыт" }, "type": "number", "default": 0 },
-        { "key": "careers", "label": { "en": "Careers", "ru": "Карьеры" }, "type": "textarea" },
+        { "key": "name", "label": { "en": "Name", "ru": "Имя" }, "type": "text", "width": "half" },
+        { "key": "player_name", "label": { "en": "Player", "ru": "Игрок" }, "type": "text", "width": "half" }
+      ]
+    },
+    {
+      "id": "careers",
+      "label": { "en": "Careers", "ru": "Карьеры" },
+      "layout": "vertical",
+      "fields": [
+        { "key": "career_1", "label": { "en": "Career 1", "ru": "Карьера 1" }, "type": "text", "width": "third" },
+        { "key": "career_2", "label": { "en": "Career 2", "ru": "Карьера 2" }, "type": "text", "width": "third" },
+        { "key": "career_3", "label": { "en": "Career 3", "ru": "Карьера 3" }, "type": "text", "width": "third" }
+      ]
+    },
+    {
+      "id": "progress",
+      "label": { "en": "Level & XP", "ru": "Уровень и опыт" },
+      "layout": "label-inline",
+      "fields": [
+        { "key": "level", "label": { "en": "Level", "ru": "Уровень" }, "shortLabel": { "en": "Lvl", "ru": "Ур." }, "type": "number", "min": 1, "max": 10, "default": 1, "derivedKey": "level", "tags": ["core"] },
+        { "key": "xp", "label": { "en": "XP", "ru": "Опыт" }, "type": "number", "min": 0, "default": 0, "tags": ["core"] },
+        { "key": "xp_max", "label": { "en": "XP to next level", "ru": "Опыт до след. уровня" }, "shortLabel": { "en": "Next", "ru": "До ур." }, "type": "number", "min": 1, "default": 4, "derivedKey": "xp_max", "inputMode": "readonly-derived", "tags": ["core"] }
       ]
     },
     {
@@ -26,32 +42,39 @@
       "label": { "en": "Defense", "ru": "Защита" },
       "layout": "label-inline",
       "fields": [
-        { "key": "armor", "label": { "en": "Armor", "ru": "ОД" }, "type": "number", "min": 0, "max": 7, "default": 0 },
-        { "key": "ac", "label": { "en": "AC", "ru": "КД" }, "shortLabel": { "en": "AC", "ru": "КД" }, "type": "number", "derivedKey": "ac", "inputMode": "readonly-derived" }
+        { "key": "armor", "label": { "en": "Armor (AC)", "ru": "ОД (класс брони)" }, "shortLabel": { "en": "AC", "ru": "ОД" }, "type": "number", "min": 0, "max": 7, "default": 0, "tags": ["combat"] },
+        { "key": "ac", "label": { "en": "Defense (d20 target)", "ru": "КД (цель d20)" }, "shortLabel": { "en": "AC", "ru": "КД" }, "type": "number", "derivedKey": "ac", "inputMode": "readonly-derived", "tags": ["combat"] }
       ]
     },
     {
       "id": "hp_pool",
-      "label": { "en": "Health & Slots", "ru": "Здоровье и Слоты" },
+      "label": { "en": "Hit Points", "ru": "Хиты" },
       "layout": "inline",
       "fields": [
-        { "key": "hp", "label": { "en": "HP", "ru": "ОЗ" }, "type": "number", "default": 6 },
-        { "key": "hp_max", "label": { "en": "Max HP", "ru": "Макс ОЗ" }, "type": "number", "default": 6 },
-        { "key": "slots", "label": { "en": "Slots", "ru": "Слотов" }, "type": "number" }
-        { "key": "slots_max", "label": { "en": "Max Slots", "ru": "Всего слотов" }, "type": "number" }
+        { "key": "hp", "label": { "en": "HP", "ru": "ОЗ" }, "type": "number", "min": 0, "default": 6, "tags": ["combat"] },
+        { "key": "hp_max", "label": { "en": "Max HP", "ru": "Макс ОЗ" }, "type": "number", "min": 0, "default": 6, "tags": ["combat"] }
+      ]
+    },
+    {
+      "id": "slots",
+      "label": { "en": "Inventory Slots", "ru": "Слоты" },
+      "layout": "label-inline",
+      "fields": [
+        { "key": "slots", "label": { "en": "Slots used", "ru": "Слотов занято" }, "shortLabel": { "en": "Used", "ru": "Занято" }, "type": "number", "min": 0, "default": 0, "tags": ["core"] },
+        { "key": "slots_max", "label": { "en": "Slot capacity", "ru": "Вместимость" }, "shortLabel": { "en": "Cap", "ru": "Вмещ." }, "type": "number", "min": 1, "default": 10, "tags": ["core"] }
       ]
     },
     {
       "id": "abilities",
-      "label": { "en": "Attributes", "ru": "Характеристики" },
+      "label": { "en": "Abilities", "ru": "Характеристики" },
       "layout": "grid-6",
       "fields": [
-        { "key": "str", "label": { "en": "STR", "ru": "СИЛ" }, "type": "number", "min": 0, "max": 10, "default": 0 },
-        { "key": "dex", "label": { "en": "DEX", "ru": "ЛОВ" }, "type": "number", "min": 0, "max": 10, "default": 0 },
-        { "key": "con", "label": { "en": "CON", "ru": "ТЕЛ" }, "type": "number", "min": 0, "max": 10, "default": 0 },
-        { "key": "int", "label": { "en": "INT", "ru": "ИНТ" }, "type": "number", "min": 0, "max": 10, "default": 0 },
-        { "key": "wis", "label": { "en": "WIS", "ru": "МДР" }, "type": "number", "min": 0, "max": 10, "default": 0 },
-        { "key": "cha", "label": { "en": "CHA", "ru": "ХАР" }, "type": "number", "min": 0, "max": 10, "default": 0 }
+        { "key": "str", "label": { "en": "Strength", "ru": "Сила" }, "shortLabel": { "en": "STR", "ru": "СИЛ" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + str", "rollLabel": { "en": "STR check", "ru": "Проверка СИЛ" }, "tags": ["core"] },
+        { "key": "dex", "label": { "en": "Dexterity", "ru": "Ловкость" }, "shortLabel": { "en": "DEX", "ru": "ЛОВ" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + dex", "rollLabel": { "en": "DEX check", "ru": "Проверка ЛОВ" }, "tags": ["core"] },
+        { "key": "con", "label": { "en": "Constitution", "ru": "Телосложение" }, "shortLabel": { "en": "CON", "ru": "ТЕЛ" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + con", "rollLabel": { "en": "CON check", "ru": "Проверка ТЕЛ" }, "tags": ["core"] },
+        { "key": "int", "label": { "en": "Intelligence", "ru": "Интеллект" }, "shortLabel": { "en": "INT", "ru": "ИНТ" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + int", "rollLabel": { "en": "INT check", "ru": "Проверка ИНТ" }, "tags": ["core"] },
+        { "key": "wis", "label": { "en": "Wisdom", "ru": "Мудрость" }, "shortLabel": { "en": "WIS", "ru": "МДР" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + wis", "rollLabel": { "en": "WIS check", "ru": "Проверка МДР" }, "tags": ["core"] },
+        { "key": "cha", "label": { "en": "Charisma", "ru": "Харизма" }, "shortLabel": { "en": "CHA", "ru": "ХАР" }, "type": "number", "min": 3, "max": 18, "default": 3, "rollFormula": "1d20 + cha", "rollLabel": { "en": "CHA check", "ru": "Проверка ХАР" }, "tags": ["core"] }
       ]
     }
   ],
@@ -62,41 +85,60 @@
       "color": "#db5353",
       "currentKey": "hp",
       "maxKey": "hp_max",
-      "recharge": "long-rest"
+      "recharge": "long-rest",
+      "visibleTo": "all",
+      "displayIn": ["header", "sheet"]
     },
     {
       "key": "slots",
       "label": { "en": "Slots", "ru": "Слоты" },
-      "color": "#8b0000",
+      "color": "#a78bfa",
       "currentKey": "slots",
-      "maxKey": "slots_max"
-    },
+      "maxKey": "slots_max",
+      "recharge": "manual",
+      "visibleTo": "all",
+      "displayIn": ["header", "sheet"]
+    }
   ],
   "derivedFields": [
-    { "key": "ac", "formula": "11 + armor + shield" },
-    { "key": "slots_max", "formula": "10 + con" },
-    { "key": "coins_max", "formula": "slots_max * 100" },
-    { "key": "melee_bonus", "formula": "str" },
-    { "key": "ranged_bonus", "formula": "wis" },
-    { "key": "magic_bonus", "formula": "int" }
+    { "key": "ac", "label": { "en": "Defense", "ru": "КД" }, "description": { "en": "Knave 2e: defense = 10 + your Armor Class.", "ru": "Knave 2e: КД = 10 + ОД." }, "formula": "10 + armor" },
+    { "key": "careers_count", "label": { "en": "Filled careers", "ru": "Заполнено карьер" }, "formula": "if(career_1, 1, 0) + if(career_2, 1, 0) + if(career_3, 1, 0)" },
+    { "key": "level", "label": { "en": "Level", "ru": "Уровень" }, "description": { "en": "Grows automatically with XP. Adventurer: level 1 up to 3 XP, then one level per point (4 XP = level 2 ... 12+ XP = level 10). Career: the first career needs 10 XP per level; each extra career lowers the step by 1 (two careers: 9 XP, three: 8 XP).", "ru": "Растёт автоматически по мере опыта. Искатель: 1-й уровень до 3 XP, далее уровень за каждый пункт (4 XP = 2-й ... 12+ XP = 10-й). Карьеры: первая карьера — уровень каждые 10 XP; каждая следующая снижает шаг на 1 (две карьеры: 9 XP, три: 8 XP)." }, "formula": "clamp(if(careers_count > 0, floor(xp / (11 - careers_count)), if(xp < 4, 1, xp - 2)), 1, 10)" },
+    { "key": "xp_max", "label": { "en": "XP needed for the next level", "ru": "Опыт до следующего уровня" }, "description": { "en": "Knave 2e: an adventurer needs as many XP as the next level (4, then 5..10); a career needs one level per step (10 minus extra careers). At level 10 the bar shows total XP.", "ru": "Knave 2e: искателю нужно столько XP, какой следующий уровень (4, затем 5..10); карьере — уровень каждые (10 минус дополнительные карьеры) XP. На 10-м уровне полоса показывает общий опыт." }, "formula": "if(level >= 10, max(xp, 1), if(careers_count > 0, (floor(xp / (11 - careers_count)) + 1) * (11 - careers_count), level + 1))" },
+    { "key": "xp_pct", "label": { "en": "Progress to next level, %", "ru": "Прогресс до след. уровня, %" }, "formula": "if(xp_max, min(if(xp_max > 0, xp * 100 / xp_max, 0), 100), 0)" },
+    { "key": "melee_bonus", "label": { "en": "Melee attack bonus", "ru": "Бонус ближней атаки" }, "formula": "str" },
+    { "key": "ranged_bonus", "label": { "en": "Ranged attack bonus", "ru": "Бонус дальней атаки" }, "formula": "wis" },
+    { "key": "magic_bonus", "label": { "en": "Magic attack bonus", "ru": "Бонус магической атаки" }, "formula": "int" }
+  ],
+  "itemRules": [
+    { "id": "item-slots", "label": { "en": "Item slot cost", "ru": "Стоимость предмета в слотах" }, "when": "carried == 1", "key": "slots", "mode": "add", "value": "slot_cost" },
+    { "id": "item-slot-bonus", "label": { "en": "Container extra capacity", "ru": "Дополнительная вместимость контейнера" }, "when": "carried == 1", "key": "slots_max", "mode": "add", "value": "slot_bonus" },
+    { "id": "item-armor", "label": { "en": "Armor class from worn armor", "ru": "ОД из надетой брони" }, "when": "equipped == 1", "key": "armor", "mode": "replace-base", "value": "ac" },
+    { "id": "item-shield", "label": { "en": "Shield bonus to defense", "ru": "Бонус щита к КД" }, "when": "equipped == 1", "key": "ac", "mode": "add", "value": "ac_bonus" }
   ],
   "stateRules": [
-    {
-      "id": "wounded",
-      "when": "hp <= 0",
-      "defeated": false
-    },
-    {
-      "id": "dead",
-      "when": "wounds >= slots_max",
-      "defeated": true
-    }
+    { "id": "wounded", "label": { "en": "Wounded", "ru": "Ранен" }, "when": "hp <= 0", "defeated": false },
+    { "id": "dead", "label": { "en": "Dead", "ru": "Мертв" }, "when": "hp <= -10", "defeated": true }
   ],
   "actions": [
     {
+      "id": "ability-check",
+      "label": { "en": "Ability Check", "ru": "Проверка характеристики" },
+      "description": { "en": "d20 + ability vs difficulty (usually 15).", "ru": "d20 + характеристика против сложности (обычно 15)." },
+      "usableBy": "owner",
+      "steps": [
+        { "type": "roll", "formula": "1d20 + str", "captureAs": "check_str" },
+        { "type": "roll", "formula": "1d20 + dex", "captureAs": "check_dex" },
+        { "type": "roll", "formula": "1d20 + con", "captureAs": "check_con" },
+        { "type": "roll", "formula": "1d20 + int", "captureAs": "check_int" },
+        { "type": "roll", "formula": "1d20 + wis", "captureAs": "check_wis" },
+        { "type": "roll", "formula": "1d20 + cha", "captureAs": "check_cha" }
+      ]
+    },
+    {
       "id": "melee-attack",
       "label": { "en": "Melee Attack", "ru": "Ближняя атака" },
-      "description": { "en": "d20 + STR vs AC. 21+ free maneuver, 1 breaks weapon.", "ru": "d20 + СИЛ против КД. 21+ маневр, 1 ломает оружие." },
+      "description": { "en": "d20 + STR vs target defense. 21+ free maneuver, natural 1 breaks the weapon.", "ru": "d20 + СИЛ против КД цели. 21+ свободный маневр, натуральная 1 ломает оружие." },
       "usableBy": "owner",
       "targeting": { "shape": "single", "range": 1, "maxTargets": 1 },
       "steps": [
@@ -111,8 +153,8 @@
         {
           "type": "branch",
           "cases": [
-            { "when": "atk >= 21", "then": [ { "type": "chat", "text": "21+: Бесплатный маневр!" } ] },
-            { "when": "atk == 1", "then": [ { "type": "chat", "text": "Натуральная 1: Оружие сломалось!" } ] }
+            { "when": "atk >= 21", "then": [ { "type": "chat", "text": "21+: бесплатный маневр!" } ] },
+            { "when": "atk == 1", "then": [ { "type": "chat", "text": "Натуральная 1: оружие сломалось!" } ] }
           ]
         }
       ]
@@ -120,7 +162,7 @@
     {
       "id": "ranged-attack",
       "label": { "en": "Ranged Attack", "ru": "Дальняя атака" },
-      "description": { "en": "d20 + WIS vs AC.", "ru": "d20 + МДР против КД." },
+      "description": { "en": "d20 + WIS vs target defense.", "ru": "d20 + МДР против КД цели." },
       "usableBy": "owner",
       "targeting": { "shape": "single", "range": 24, "maxTargets": 1 },
       "steps": [
@@ -135,19 +177,13 @@
       ]
     },
     {
-      "id": "morale-check",
-      "label": { "en": "Morale Check", "ru": "Проверка морали" },
-      "description": { "en": "2d6 <= Morale. Flee on failure.", "ru": "2d6 <= Мораль. При провале бегут." },
-      "usableBy": "master",
+      "id": "long-rest",
+      "label": { "en": "Long Rest", "ru": "Длительный отдых" },
+      "description": { "en": "Restore all HP.", "ru": "Полностью восстановить ОЗ." },
+      "usableBy": "owner",
       "steps": [
-        { "type": "roll", "formula": "2d6", "captureAs": "morale_roll" },
-        {
-          "type": "branch",
-          "cases": [
-            { "when": "morale_roll <= morale", "then": [ { "type": "chat", "text": "Мораль пройдена." } ] },
-            { "when": "true", "then": [ { "type": "chat", "text": "Мораль провалена: бегство или сдача!" } ] }
-          ]
-        }
+        { "type": "restoreResource", "restoreAllOf": "long-rest" },
+        { "type": "chat", "text": "Длительный отдых: ОЗ восстановлены." }
       ]
     }
   ],
@@ -156,22 +192,22 @@
       "id": "sizes",
       "label": { "en": "Sizes", "ru": "Размеры" },
       "entries": [
-        { "id": "tiny", "label": { "en": "Tiny", "ru": "Крошечный" } },
-        { "id": "small", "label": { "en": "Small", "ru": "Маленький" } },
-        { "id": "medium", "label": { "en": "Medium", "ru": "Средний" } },
-        { "id": "large", "label": { "en": "Large", "ru": "Большой" } },
-        { "id": "huge", "label": { "en": "Huge", "ru": "Огромный" } },
-        { "id": "gargantuan", "label": { "en": "Gargantuan", "ru": "Громадный" } }
+        { "id": "humanoid", "label": { "en": "Humanoid", "ru": "Гуманоид" } },
+        { "id": "animal", "label": { "en": "Animal", "ru": "Животное" } },
+        { "id": "monster", "label": { "en": "Monster", "ru": "Монстр" } },
+        { "id": "construct", "label": { "en": "Construct", "ru": "Конструкт" } },
+        { "id": "undead", "label": { "en": "Undead", "ru": "Нежить" } }
       ]
     },
     {
       "id": "weapons",
       "label": { "en": "Weapons", "ru": "Оружие" },
       "entries": [
-        { "id": "melee", "label": { "en": "Melee (d6)", "ru": "Ближний бой (d6)" } },
+        { "id": "one-handed", "label": { "en": "One-handed (d6)", "ru": "Одноручное (d6)" } },
         { "id": "two-handed", "label": { "en": "Two-handed (d8)", "ru": "Двуручное (d8)" } },
         { "id": "sling", "label": { "en": "Sling (d4)", "ru": "Праща (d4)" } },
-        { "id": "bow", "label": { "en": "Bow (d6)", "ru": "Лук (d6)" } }
+        { "id": "bow", "label": { "en": "Bow (d6)", "ru": "Лук (d6)" } },
+        { "id": "crossbow", "label": { "en": "Crossbow (d8)", "ru": "Арбалет (d8)" } }
       ]
     },
     {
@@ -192,25 +228,185 @@
     "item": {
       "label": { "en": "Items", "ru": "Предметы" },
       "fields": [
-        { "key": "slots", "label": { "en": "Slots", "ru": "Слоты" }, "type": "number", "default": 1, "min": 0 },
-        { "key": "equipped", "label": { "en": "Equipped", "ru": "Надето" }, "type": "boolean", "default": false },
-        { "key": "wounded", "label": { "en": "Wounded", "ru": "Ранен" }, "type": "boolean", "default": false },
-        { "key": "broken", "label": { "en": "Broken", "ru": "Сломано" }, "type": "boolean", "default": false },
-        { "key": "damage_die", "label": { "en": "Damage Die", "ru": "Кость урона" }, "type": "text", "default": "d6" }
+        { "key": "slot_cost", "label": { "en": "Slots", "ru": "Слоты" }, "description": { "en": "How many inventory slots the item occupies when carried.", "ru": "Сколько слотов занимает предмет, когда его носят." }, "type": "number", "default": 1, "min": 0, "integer": true, "displayAs": "chip" },
+        { "key": "slot_bonus", "label": { "en": "Extra slots", "ru": "+Слоты" }, "description": { "en": "Increases the character's total slot capacity while carried (containers, bags of holding).", "ru": "Увеличивает общую вместимость слотов, пока предмет носят (контейнеры, сумки хранения)." }, "type": "number", "default": 0, "min": 0, "integer": true, "displayAs": "chip", "prefix": { "en": "+", "ru": "+" } },
+        { "key": "ac", "label": { "en": "Armor Class", "ru": "ОД" }, "description": { "en": "Armor value for worn armor pieces; replaces the base armor total.", "ru": "Значение ОД для элементов брони; заменяет базовую сумму ОД." }, "type": "number", "default": 0, "min": 0, "max": 7, "integer": true, "displayAs": "chip" },
+        { "key": "ac_bonus", "label": { "en": "Defense bonus", "ru": "+КД" }, "description": { "en": "Adds to Defense (AC) while equipped. Example: a shield gives +1 and takes 1 slot.", "ru": "Добавляет к КД, когда надето. Пример: щит даёт +1 и занимает 1 слот." }, "type": "number", "default": 0, "min": 0, "integer": true, "displayAs": "chip", "prefix": { "en": "+", "ru": "+" } },
+        { "key": "equipped", "label": { "en": "Equipped", "ru": "Надето" }, "type": "boolean", "default": false, "displayAs": "toggle-icon", "icon": "shirt" },
+        { "key": "carried", "label": { "en": "Carried", "ru": "Несу" }, "type": "boolean", "default": true, "displayAs": "toggle-icon", "icon": "backpack" },
+        { "key": "broken", "label": { "en": "Broken", "ru": "Сломано" }, "type": "boolean", "default": false, "displayAs": "flag-when-on" },
+        { "key": "damage_die", "label": { "en": "Damage Die", "ru": "Кость урона" }, "type": "text", "default": "d6", "displayAs": "chip" }
       ]
     },
     "spell": {
       "label": { "en": "Spellbooks", "ru": "Книги заклинаний" },
       "fields": [
-        { "key": "cast_today", "label": { "en": "Cast Today", "ru": "Использовано сегодня" }, "type": "boolean", "default": false },
-        { "key": "chaos", "label": { "en": "Chaos Book", "ru": "Книга Хаоса" }, "type": "boolean", "default": false }
+        { "key": "cast_today", "label": { "en": "Cast today", "ru": "Использовано сегодня" }, "type": "boolean", "default": false, "displayAs": "flag-when-on" },
+        { "key": "chaos", "label": { "en": "Chaos book", "ru": "Книга Хаоса" }, "type": "boolean", "default": false, "displayAs": "toggle-icon", "icon": "sparkles" }
       ]
     },
     "feature": {
       "label": { "en": "Features", "ru": "Особенности" },
       "fields": [
-        { "key": "type", "label": { "en": "Type", "ru": "Тип" }, "type": "enum", "options": ["mutation", "blessing", "career", "patron"] },
-        { "key": "uses", "label": { "en": "Uses", "ru": "Использования" }, "type": "number", "min": 0 }
+        { "key": "type", "label": { "en": "Type", "ru": "Тип" }, "type": "enum", "options": ["mutation", "blessing", "career", "patron"], "displayAs": "chip" },
+        { "key": "uses", "label": { "en": "Uses", "ru": "Использования" }, "type": "number", "min": 0, "displayAs": "inline-edit" }
+      ]
+    }
+  },
+  "sheetVariants": [
+    {
+      "id": "pc",
+      "label": { "en": "Player character sheet", "ru": "Лист персонажа" },
+      "defaultFor": "player",
+      "layout": {
+        "type": "col",
+        "presentation": "compact",
+        "children": [
+          {
+            "type": "row",
+            "gap": 12,
+            "children": [
+              { "type": "resourceBar", "resourceKey": "hp", "presentation": "compact", "icon": "heart" },
+              { "type": "fieldGroup", "groupId": "defense", "fieldKeys": ["ac"], "presentation": "summary", "hideLabel": true },
+              { "type": "fieldGroup", "groupId": "progress", "fieldKeys": ["level"], "presentation": "summary", "hideLabel": true }
+            ]
+          },
+          { "type": "fieldGroup", "groupId": "identity", "hideLabel": true },
+          {
+            "type": "collapsible",
+            "tone": "chat",
+            "id": "knave-careers",
+            "icon": "scroll-text",
+            "title": { "en": "Careers", "ru": "Карьеры" },
+            "defaultOpen": true,
+            "children": [
+              { "type": "fieldGroup", "groupId": "careers", "hideLabel": true }
+            ]
+          },
+          {
+            "type": "row",
+            "gap": 12,
+            "children": [
+              { "type": "fieldGroup", "groupId": "progress", "fieldKeys": ["xp", "xp_max"], "layoutOverride": "label-inline", "hideLabel": true },
+              { "type": "progressBar", "valueKey": "xp", "maxKey": "xp_max", "label": { "en": "XP", "ru": "Опыт" }, "color": "#a78bfa" }
+            ]
+          },
+          { "type": "fieldGroup", "groupId": "defense", "hideLabel": true },
+          { "type": "resourceBar", "resourceKey": "hp", "icon": "heart" },
+          {
+            "type": "row",
+            "gap": 12,
+            "children": [
+              { "type": "fieldGroup", "groupId": "slots", "layoutOverride": "label-inline", "hideLabel": true },
+              { "type": "resourceBar", "resourceKey": "slots", "presentation": "compact", "icon": "backpack" }
+            ]
+          },
+          { "type": "fieldGroup", "groupId": "abilities" },
+          {
+            "type": "col",
+            "sectionsId": "knave-pc-blocks",
+            "tabGroups": [
+              ["actions", "inventory", "features"],
+              ["notes"]
+            ],
+            "children": [
+              {
+                "type": "collapsible",
+                "tone": "roll",
+                "id": "actions",
+                "icon": "swords",
+                "title": { "en": "Actions", "ru": "Действия" },
+                "defaultOpen": false,
+                "children": [
+                  { "type": "actionsList", "usableBy": "owner", "hideTitle": true }
+                ]
+              },
+              {
+                "type": "collapsible",
+                "tone": "resource",
+                "id": "inventory",
+                "icon": "backpack",
+                "title": { "en": "Inventory", "ru": "Инвентарь" },
+                "defaultOpen": true,
+                "children": [
+                  { "type": "entryList", "entryType": "item" }
+                ]
+              },
+              {
+                "type": "collapsible",
+                "tone": "effect",
+                "id": "spells",
+                "icon": "sparkles",
+                "title": { "en": "Spellbooks", "ru": "Книги заклинаний" },
+                "defaultOpen": false,
+                "children": [
+                  { "type": "entryList", "entryType": "spell" }
+                ]
+              },
+              {
+                "type": "collapsible",
+                "tone": "chat",
+                "id": "features",
+                "icon": "star",
+                "title": { "en": "Features", "ru": "Особенности" },
+                "defaultOpen": false,
+                "children": [
+                  { "type": "entryList", "entryType": "feature" }
+                ]
+              },
+              {
+                "type": "collapsible",
+                "tone": "chat",
+                "id": "notes",
+                "icon": "notebook-pen",
+                "title": { "en": "Notes", "ru": "Заметки" },
+                "defaultOpen": false,
+                "children": [
+                  { "type": "entryList", "entryType": "note" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "migrations": [
+    {
+      "fromVersion": "1.0.1",
+      "toVersion": "1.1.0",
+      "operations": [
+        { "kind": "remove", "key": "careers" },
+        { "kind": "add", "key": "career_1", "default": "" },
+        { "kind": "add", "key": "career_2", "default": "" },
+        { "kind": "add", "key": "career_3", "default": "" },
+        { "kind": "transform", "key": "slots_max", "expr": "10" }
+      ]
+    }
+  ],
+  "editorMeta": {
+    "_previewSeed": {
+      "systemData": {
+        "level": 2,
+        "xp": 5,
+        "career_1": "",
+        "career_2": "",
+        "career_3": "",
+        "armor": 2,
+        "hp": 5,
+        "hp_max": 6,
+        "str": 12,
+        "dex": 9,
+        "con": 11,
+        "int": 8,
+        "wis": 10,
+        "cha": 7
+      },
+      "entries": [
+        { "type": "item", "name": "Leather Jack", "data": { "ac": 1, "slot_cost": 1, "equipped": true, "carried": true } },
+        { "name": "Shield", "data": { "ac_bonus": 1, "slot_cost": 1, "equipped": true, "carried": true } },
+        { "name": "Sword", "data": { "damage_die": "d6", "slot_cost": 1, "carried": true } },
+        { "name": "Backpack", "data": { "slot_bonus": 1, "slot_cost": 1, "carried": true } }
       ]
     }
   }
