@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try{var vt=new URLSearchParams(location.search).get('theme')||sessionStorage.getItem('vtt_theme_effective')||localStorage.getItem('vtt_theme');if(vt==='light'||vt==='dark'||vt==='arcane'||vt==='parchment')document.documentElement.setAttribute('data-theme',vt);}catch(e){}</script>
+  <title>Как собрать полный контекст для агента — Ролебаза, документация для агента</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4efe5;
+      --paper: #fffaf1;
+      --ink: #241f19;
+      --muted: #6d6255;
+      --line: #d9ccb8;
+      --accent: #9b5a20;
+      --accent-soft: #f2dfc5;
+      --code: #211e1a;
+      --code-ink: #f8ecd9;
+      --good: #27653a;
+      --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(54, 38, 20, .12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        --bg: #171411;
+        --paper: #211d19;
+        --ink: #f4e8d5;
+        --muted: #bbae9b;
+        --line: #4a4035;
+        --accent: #e0a85e;
+        --accent-soft: #3b2d1c;
+        --code: #100f0d;
+        --code-ink: #f4e5ca;
+        --good: #8ed09c;
+        --warn: #e8a267;
+        --shadow: 0 18px 55px rgba(0, 0, 0, .32);
+      }
+    }
+
+    /* Базовые темы стола: страница подхватывает выбор пользователя Ролебазы
+       (localStorage vtt_theme → data-theme на html). Без data-theme действует
+       автономная схема выше (пергамент + prefers-color-scheme). */
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f5; --paper: #ffffff; --ink: #333333; --muted: #666666;
+      --line: #dddddd; --accent: #4263eb; --accent-soft: #e7f3ff;
+      --code: #1f2430; --code-ink: #e6edf7; --good: #2e7d32; --warn: #b45309;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .10);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #1a1a2e; --paper: #16213e; --ink: #e0e0e0; --muted: #9fa8bb;
+      --line: #2a3a5c; --accent: #748ffc; --accent-soft: #1e2c4f;
+      --code: #111827; --code-ink: #dbe4ff; --good: #6bdb86; --warn: #f0a860;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .35);
+    }
+    :root[data-theme="arcane"] {
+      color-scheme: dark;
+      --bg: #1c1815; --paper: #2e2822; --ink: #f5e6ca; --muted: #a69b8d;
+      --line: #594d3f; --accent: #d4af60; --accent-soft: #3d352c;
+      --code: #26211c; --code-ink: #f0e0be; --good: #7bc98a; --warn: #e0a85e;
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+    }
+    :root[data-theme="parchment"] {
+      color-scheme: light;
+      --bg: #e8dcc8; --paper: #faf5ec; --ink: #20150b; --muted: #6b5a45;
+      --line: #d5c3a1; --accent: #af6c28; --accent-soft: #eeddc2;
+      --code: #211e1a; --code-ink: #f8ecd9; --good: #2e7d32; --warn: #8c4a19;
+      --shadow: 0 18px 55px rgba(66, 36, 9, .14);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.62 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .08em .3em; border-radius: .25em; background: var(--accent-soft); }
+    pre {
+      margin: 1rem 0;
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      overflow: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+      tab-size: 2;
+    }
+    pre code { padding: 0; background: transparent; }
+    header {
+      padding: 5rem max(1.25rem, calc((100% - 1120px) / 2)) 3.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { color: var(--accent); font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { max-width: 900px; margin: .45rem 0 1rem; font-family: Georgia, serif; font-size: clamp(2.4rem, 6vw, 5.5rem); line-height: .98; }
+    header p { max-width: 760px; font-size: 1.2rem; color: var(--muted); }
+    .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.4rem; margin-top: 1.5rem; }
+    .meta-date { color: var(--muted); }
+    .meta-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .22em; }
+    .meta-link:hover { text-decoration-thickness: 2.5px; }
+    .layout { display: grid; grid-template-columns: 255px minmax(0, 820px); gap: 3rem; max-width: 1120px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; }
+    nav { position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow: auto; padding: 1rem; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--paper) 92%, transparent); }
+    nav strong { display: block; margin: 0 0 .6rem; }
+    nav a { display: block; padding: .28rem .2rem; color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    nav .nav-part { margin: .8rem 0 .2rem; color: var(--accent); font-size: .78rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    main { min-width: 0; overflow-wrap: anywhere; }
+    section { scroll-margin-top: 2rem; margin: 0 0 4.5rem; }
+    h2 { margin: 0 0 1rem; font: 700 clamp(1.8rem, 4vw, 2.8rem)/1.1 Georgia, serif; }
+    h3 { margin: 2.2rem 0 .6rem; font-size: 1.25rem; }
+    h4 { margin: 1.4rem 0 .45rem; }
+    p { margin: .65rem 0 1rem; }
+    .lead { font-size: 1.12rem; color: var(--muted); }
+    .card, .callout, details {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .card, .callout { padding: 1rem 1.2rem; margin: 1.2rem 0; }
+    .callout { border-left: 5px solid var(--accent); }
+    .callout.good { border-left-color: var(--good); }
+    .callout.warn { border-left-color: var(--warn); }
+    .callout.scene { border-left-color: var(--good); }
+    .scene-label { display: block; margin-bottom: .25rem; color: var(--good); font-size: .8rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+    .steps { counter-reset: tutorial-step; }
+    .tutorial-step { position: relative; padding-left: 3.2rem; margin: 2rem 0; }
+    .tutorial-step::before {
+      counter-increment: tutorial-step;
+      content: counter(tutorial-step);
+      position: absolute; left: 0; top: -.1rem;
+      width: 2.25rem; height: 2.25rem; display: grid; place-items: center;
+      border-radius: 50%; background: var(--accent); color: var(--paper); font-weight: 800;
+    }
+    figure { margin: 1.5rem 0 2.2rem; }
+    figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); background: #fff; }
+    figure svg { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow); }
+    figcaption { margin-top: .55rem; color: var(--muted); font-size: .92rem; }
+    /* Inline SVG diagram parts — colours strictly from theme variables. */
+    .d-box { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+    .d-zone { fill: color-mix(in srgb, var(--accent-soft) 60%, transparent); stroke: var(--line); stroke-width: 1.2; }
+    .d-accent { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+    .d-good-edge { stroke: var(--good); stroke-width: 1.8; }
+    .d-warn-edge { stroke: var(--warn); stroke-width: 1.8; }
+    .d-text { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+    .d-small { fill: var(--ink); font: 500 13.5px system-ui, sans-serif; }
+    .d-mono { fill: var(--ink); font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .d-muted { fill: var(--muted); font: 12.5px system-ui, sans-serif; }
+    .d-title { fill: var(--accent); font: 700 12.5px system-ui, sans-serif; letter-spacing: .07em; }
+    .d-line { stroke: var(--accent); stroke-width: 2; fill: none; }
+    .d-arrow { fill: var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.7rem; font-size: .94rem; }
+    th, td { padding: .7rem .75rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--accent-soft); }
+    td:first-child { white-space: nowrap; }
+    .table-scroll { max-width: 100%; overflow-x: auto; }
+    .table-scroll table { min-width: 620px; overflow-wrap: normal; }
+    details { margin: .8rem 0; padding: .8rem 1rem; box-shadow: none; }
+    summary { cursor: pointer; font-weight: 700; }
+    summary .when { color: var(--muted); font-weight: 500; }
+    .tag { display: inline-block; margin: .1rem .15rem .1rem 0; padding: .08rem .42rem; border-radius: .35rem; background: var(--accent-soft); font: .82rem ui-monospace, monospace; }
+    .yes { color: var(--good); font-weight: 700; }
+    .json { color: var(--warn); font-weight: 700; }
+    .checklist li { margin: .45rem 0; }
+    .ladder { list-style: none; margin: 1rem 0 1.4rem; padding: 0; }
+    .ladder li { position: relative; margin: .45rem 0; padding: .65rem .85rem .65rem 2.5rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .ladder li::before { content: "?"; position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--accent); font-weight: 800; }
+    .ladder li.final::before { content: "="; color: var(--good); }
+    .ladder .then { color: var(--muted); }
+    footer { padding: 2rem max(1.25rem, calc((100% - 1120px) / 2)); border-top: 1px solid var(--line); color: var(--muted); }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { position: static; max-height: none; }
+      .grid { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Ролебаза · документация для подключённого агента</div>
+  <h1>Как собрать полный контекст для агента</h1>
+  <p>Маршрут по протоколам, DSL, действиям и данным конкретной игры с проверкой полноты перед записью.</p>
+  <div class="meta">
+    <span class="meta-date">Актуально на 2026-10-13</span>
+    <a class="meta-link" href="index.html">Все страницы →</a>
+    <a class="meta-link" href="updates.html">Версии и изменения →</a>
+  </div>
+</header>
+
+<div class="layout">
+  <nav aria-label="Оглавление">
+    <strong>Оглавление</strong>
+    <a href="#полнота-состоит-из-пяти-частей">1. Полнота состоит из пяти частей</a>
+    <a href="#откуда-начинать">2. Откуда начинать</a>
+    <a href="#шаг-первый-зафиксировать-задачу-и-канал">3. Шаг первый: зафиксировать задачу и канал</a>
+    <a href="#шаг-второй-получить-живой-транспортный-контракт">4. Шаг второй: получить живой транспортный контракт</a>
+    <a href="#шаг-третий-собрать-комплект-языков">5. Шаг третий: собрать комплект языков</a>
+    <a href="#шаг-четвёртый-прочитать-конкретные-данные">6. Шаг четвёртый: прочитать конкретные данные</a>
+    <a href="#шаг-пятый-проверить-полноту-и-согласованность">7. Шаг пятый: проверить полноту и согласованность</a>
+    <a href="#шаг-шестой-выполнить-и-подтвердить">8. Шаг шестой: выполнить и подтвердить</a>
+    <a href="#паспорт-собранного-контекста">9. Паспорт собранного контекста</a>
+    <a href="#если-у-ассистента-нет-доступа-к-url">10. Если у ассистента нет доступа к URL</a>
+    <a href="index.html">Все страницы →</a>
+  </nav>
+
+  <main>
+    <section id="intro">
+<p>Этот маршрут позволяет пользователю или его агенту получить полный контекст
+для конкретной задачи: протокол подключения, язык системы, действия,
+предметные механики, реальные данные и проверку результата. Актуально на
+13 октября 2026 года. Начать с выбора задачи можно в
+<a href="getting-started.html">пользовательских сценариях</a>.</p>
+    </section>
+
+    <section id="полнота-состоит-из-пяти-частей">
+<h2>1. Полнота состоит из пяти частей</h2>
+
+<ol>
+<li><strong>Полномочия:</strong> что пользователь поручил, к какому объекту есть доступ,
+какой канал подключён и какие операции он разрешает.</li>
+<li><strong>Транспорт:</strong> адреса, авторизация, параметры, ответы, ошибки, версии,
+повтор запросов и получение результата.</li>
+<li><strong>Языки данных:</strong> манифест, формулы, ActionDef, предметные носители,
+формат записей компендиума и статей.</li>
+<li><strong>Контекст конкретной игры:</strong> фактическая definition, изменения правил,
+персонажи, ресурсы, предметы, активный стол и их версии.</li>
+<li><strong>Доказательство:</strong> где сохранено, как импортировано/запущено, что изменилось.</li>
+</ol>
+<p>Полнота не означает загрузить все документы платформы для одного броска.
+Она означает закрыть все зависимости требуемой операции. Если одного звена
+нет, агент может продолжить независимую подготовку, но не объявляет весь
+сценарий работоспособным.</p>
+    </section>
+
+    <section id="откуда-начинать">
+<h2>2. Откуда начинать</h2>
+
+<p>Сначала проверьте <a href="version.json">version.json</a> и выполните
+<a href="updates.html">порядок обновления</a>. Сохраните принятую версию комплекта и хеш
+его манифеста в паспорте задачи. Это отдельная версия документации, не версия
+моста и не редакция правил. При изменении прочитайте все пропущенные блоки
+<code>agentAction</code> и заново получите контекст затронутых операций.</p>
+<p>Используйте адрес сайта из пакета подключения. Документы доступны без токена;
+к публичным страницам не нужно добавлять Authorization. API_BASE берётся
+отдельно из подключения: он может отличаться от адреса сайта.</p>
+<p>Единый вход — <a href="index.html">оглавление агента</a>. Пакет ассетов и ответ
+<code>get_schema</code> моста также дают ссылки на документацию. Относительные ссылки
+разрешаются от страницы, абсолютные пути — от origin сайта. В старых
+машинных документах встречаются внутренние пути <code>docs/...</code>: это обозначения
+источников, а не API. Используйте публичные адреса из следующего реестра.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Документ</th>
+<th>Публичный путь</th>
+<th>Для чего читать</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Сценарии пользователя</td>
+<td><code>/agent-guide/getting-started.html</code></td>
+<td>Выбрать путь и ожидаемый результат</td>
+</tr>
+<tr>
+<td>Этот маршрут</td>
+<td><code>/agent-guide/discovery.html</code></td>
+<td>Проверить полноту собранных сведений</td>
+</tr>
+<tr>
+<td>Политика и Asset API</td>
+<td><code>/agent-guide/assets.html</code></td>
+<td>REST, полномочия, схемы запросов/ответов, файлы, конфликты</td>
+</tr>
+<tr>
+<td>Agent Bridge</td>
+<td><code>/agent-guide/bridge.html</code></td>
+<td>Очередь комнаты, токены, подтверждения, результаты</td>
+</tr>
+<tr>
+<td>Манифест</td>
+<td><code>/agent-guide/manifest.html</code></td>
+<td>Поля, derived, ресурсы, состояния, листы и система целиком</td>
+</tr>
+<tr>
+<td>Процесс создания системы</td>
+<td><code>/agent-guide/authoring-process.html</code></td>
+<td>Порядок работы, диагностика и ограничения</td>
+</tr>
+<tr>
+<td>Точный контракт действий</td>
+<td><code>/action-dsl-reference.json</code></td>
+<td>ActionDef, шаги, формулы, контекст, предметный контракт</td>
+</tr>
+<tr>
+<td>Глоссарий и рецепты</td>
+<td><code>/action-guide/glossary.json</code></td>
+<td>Термины, workflow, рецепты, диагностика</td>
+</tr>
+<tr>
+<td>Компактный пакет</td>
+<td><code>/action-guide/master-pack.json</code></td>
+<td>Быстрый обзор и ключи встроенных систем</td>
+</tr>
+<tr>
+<td>Автоматизация</td>
+<td><code>/action-guide/automation.html</code></td>
+<td>Сквозные сценарии, предметы, доставка и проверки</td>
+</tr>
+<tr>
+<td>Учебник редактора</td>
+<td><code>/action-guide/index.html</code></td>
+<td>Работа пользователя в интерфейсе</td>
+</tr>
+<tr>
+<td>Постановка сцены</td>
+<td><code>/agent-guide/scene-setup.html</code></td>
+<td>Совместная работа с материалами и комнатой</td>
+</tr>
+</tbody></table></div>
+<p><code>embed.json</code> в пакете действий описывает его встраивание в панель. Он не
+является ни схемой действий, ни спецификацией REST. Машинный справочник —
+описательный JSON-контракт, не готовая JSON Schema для стороннего валидатора.</p>
+    </section>
+
+    <section id="шаг-первый-зафиксировать-задачу-и-канал">
+<h2>3. Шаг первый: зафиксировать задачу и канал</h2>
+
+<p>Пользователь называет результат: подготовить JSON, сохранить записи,
+изменить систему или применить действие за столом. Агент записывает целевой
+ресурс и критерий готовности. Для неоднозначного имени сначала выполняется
+read-only поиск; при нескольких кандидатах нужен выбор пользователя.</p>
+<ul>
+<li>Без подключения можно читать документы и готовить результат из переданного контекста.</li>
+<li>PAT/MCP ассетов позволяет работать с доступными системами, компендиумами
+и поддерживаемыми файловыми операциями. Комнатой он не управляет.</li>
+<li>Мост требует владельца комнаты с соответствующим доступом и открытого
+мастерского браузера. Чтение схемы также проходит через очередь комнаты.</li>
+<li>Если задача затрагивает оба канала, нужны оба подключения. Токены не взаимозаменяемы.</li>
+</ul>
+<p>Подробные правила и действующие ошибки доступа — в контракте выбранного
+канала. Наличие сохранённого секрета не заменяет проверки текущих полномочий.</p>
+    </section>
+
+    <section id="шаг-второй-получить-живой-транспортный-контракт">
+<h2>4. Шаг второй: получить живой транспортный контракт</h2>
+
+<p>Для Asset API прочитайте страницу <code>assets.html</code> целиком: три части пакета,
+инвентарь маршрутов, схемы тела/ответа, пагинацию, загрузку файлов, версии
+и правила повторов. При доступном MCP сначала посмотрите фактические схемы
+инструментов. Названия операций REST и MCP не следует подменять друг другом;
+например, возможности передачи заголовка <code>If-Match</code> различаются.</p>
+<p>Для моста:</p>
+<ol>
+<li>Отправьте <code>get_schema</code> по протоколу из <code>bridge.html</code> с <code>roomId</code> подключения.</li>
+<li>Сохраните <code>requestId</code> из ответа очереди и дождитесь результата команды.</li>
+<li>Сохраните <code>version</code>, <code>protocol</code>, <code>authentication</code>, <code>endpoints</code>, <code>documentation</code>
+и <strong>весь</strong> <code>commands</code>, включая параметры, readOnly и описание результата.</li>
+<li>Убедитесь, что требуемая команда и каждый необходимый параметр существуют.</li>
+<li>Прочитайте состояние активного стола перед изменениями.</li>
+</ol>
+<p>Список названий команд без params не является полной схемой. <code>get_schema</code>
+не предоставляет автоматически definition всех систем, значения листов
+и все вложенные типы: для них нужен следующий шаг.</p>
+<p>Не повторяйте мутацию из-за пустого результата очереди. Сначала дождитесь
+исполнения, затем проверьте состояние. Результат выдаётся один раз; сохраните
+его в контексте задачи. <code>requestId</code> — идентификатор результата, не гарантия
+дедупликации повторной отправки.</p>
+    </section>
+
+    <section id="шаг-третий-собрать-комплект-языков">
+<h2>5. Шаг третий: собрать комплект языков</h2>
+
+<p>Для любой задачи с действием прочитайте <strong>вместе</strong> <code>action-dsl-reference.json</code>
+и <code>glossary.json</code>. Первый определяет поля и типы, второй — значения терминов,
+порядок создания и рецепты. <code>master-pack.json</code> помогает ориентироваться,
+но не заменяет пару исходных документов.</p>
+<p>Затем добавляйте зависимости по задаче:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Таблица, прокрутка по горизонтали"><table>
+<thead>
+<tr>
+<th>Если задача включает</th>
+<th>Дополнительно нужно</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Новое поле, ресурс, состояние, derived или лист</td>
+<td>Манифест и процесс создания системы</td>
+</tr>
+<tr>
+<td>Предмет, заряды, экипировку, превращение</td>
+<td><code>carrierContract</code> референса и гайд автоматизации</td>
+</tr>
+<tr>
+<td>Запись Action/Object компендиума</td>
+<td>Asset API и соответствующий формат вложенного systemData</td>
+</tr>
+<tr>
+<td>Статью или медиа</td>
+<td>Контракт блоков статьи/медиа и файловые операции Asset API</td>
+</tr>
+<tr>
+<td>Интерактивный выбор и цели</td>
+<td>Prompt/targeting в референсе и ограничения выбранного канала запуска</td>
+</tr>
+<tr>
+<td>Реакцию, длительность, крит, повторение</td>
+<td>Их вложенные типы и порядок исполнения в референсе</td>
+</tr>
+<tr>
+<td>Постановку на стол или тест комнаты</td>
+<td>Bridge, живой get_schema, гайд сцены</td>
+</tr>
+<tr>
+<td>Работу человеком в редакторе</td>
+<td>Учебник действий и JSON-режим</td>
+</tr>
+</tbody></table></div>
+<p>Если прочитанная секция ссылается на ещё один тип, пример или контракт,
+прочитайте его до использования. Повторяйте, пока для каждого используемого
+поля известны тип, допустимые значения, место хранения и способ применения.
+Невозможность получить документ — незакрытая зависимость, а не разрешение
+придумать синтаксис.</p>
+    </section>
+
+    <section id="шаг-четвёртый-прочитать-конкретные-данные">
+<h2>6. Шаг четвёртый: прочитать конкретные данные</h2>
+
+<p>Для системы получите объект с полной <code>definition</code>, идентичностью и <code>myRole</code>.
+Для компендиума — его UUID, доступ, нужные записи, <code>systemData</code>, версии и
+ревизии статьи при работе с текстом. Пройдите все страницы нужной выборки,
+используя <code>nextCursor</code>; одна страница не доказывает отсутствие дубликата.</p>
+<p>Для комнаты проверьте roomId, текущий tableId, активную систему, ID действующего
+и целей, текущие значения ресурсов и нужные предметы. Используйте read-only
+команды, объявленные живой схемой. Не считайте ответ <code>get_items</code> автоматически
+полным представлением любого вида инвентарных записей: сверяйте форму данных.</p>
+<p>Для существующего действия приоритет имеет открытый черновик пользователя,
+если он передал его для правки. Не заменяйте его сохранённой версией без
+согласования. Для Object-шаблона нужно прочитать полный валидный снимок,
+а не восстанавливать его по названию и картинке.</p>
+<p>Дайджест встроенной D&amp;D 5e не описывает домашние изменения в её копии.
+Документированное имя ресурса ещё не означает, что этот ресурс объявлен
+в текущей системе. Проверяйте ссылки на всех уровнях.</p>
+    </section>
+
+    <section id="шаг-пятый-проверить-полноту-и-согласованность">
+<h2>7. Шаг пятый: проверить полноту и согласованность</h2>
+
+<p>Перед записью агент должен суметь ответить на каждый вопрос:</p>
+<ul>
+<li>Какой именно объект изменяется и от чьего имени?</li>
+<li>По какому контракту передаётся запрос и как получается результат?</li>
+<li>Где живёт каждое поле: ActionDef, usable, definition, запись или вызов?</li>
+<li>Все ли ключи и ссылки существуют в фактических данных?</li>
+<li>Доступны ли нужные значения в момент вычисления и в выбранной ветке?</li>
+<li>Есть ли в канале запуска параметры для источника предмета и ввода пользователя?</li>
+<li>Что произойдёт при недостатке ресурса, последнем заряде и потере ответа?</li>
+<li>Как прочитать результат и проверить его в интерфейсе?</li>
+</ul>
+<p>Обязательный пример обнаружения ограничения: у зелья есть валидный <code>usable</code>,
+но <code>execute_action</code> не принимает <code>sourceRef</code>. Следовательно, подготовка
+предмета возможна, а проверка его расхода проводится из интерфейса предмета.
+Недостающий параметр нельзя добавить в ActionDef или считать неявным.</p>
+<p>Порядок разрешения противоречий:</p>
+<ol>
+<li>Фактический ответ канала определяет доступные операции и параметры этого канала.</li>
+<li>Машинный контракт задаёт синтаксис действий; активная definition — реальные ключи.</li>
+<li>Проза и рецепты объясняют применение, но не добавляют отсутствующие поля.</li>
+<li>Ошибка загрузчика/редактора или наблюдаемое расхождение требует остановить
+зависимую запись и сообщить конфликт с точным примером. Не обходите её
+подстановкой похожего имени или ссылкой на старый пример.</li>
+</ol>
+<p>Номер формата документа, версия payload записи Action, версия протокола
+моста и редакция игровой системы — независимые версии. Одинаковая дата
+документов не доказывает совместимость всех четырёх.</p>
+    </section>
+
+    <section id="шаг-шестой-выполнить-и-подтвердить">
+<h2>8. Шаг шестой: выполнить и подтвердить</h2>
+
+<p>Последовательность: прочитать актуальную версию → подготовить изменение →
+проверить структуру и ссылки → записать → перечитать → импортировать/запустить
+в выбранном канале → сравнить состояние до/после → передать результат.</p>
+<p>Для definition сохраняется полный объект, для версионируемых записей
+учитываются версия и ревизия; подробности — в Asset API. Массовые операции
+используют документированные ограничения размера. REST-batch создания записей
+и bridge-batch имеют разные гарантии: не переносите атомарность одного на другой.</p>
+<p>Для чистой подготовки остановитесь на проверенном артефакте и инструкции.
+Для внедрения недостаточно статуса HTTP: нужны сохранённый объект и проверка
+поведения в пределах согласованной задачи.</p>
+    </section>
+
+    <section id="паспорт-собранного-контекста">
+<h2>9. Паспорт собранного контекста</h2>
+
+<p>Сохраните этот список без токенов, приватных ответов целиком и посторонних данных.
+Он позволяет продолжить работу после смены агента или перезагрузки контекста.</p>
+<pre><code class="language-text">Задача и критерий готовности:
+Принятая версия гайдов и SHA-256 release.json:
+Адрес документации / API_BASE:
+Каналы и доступные полномочия:
+Прочитанные документы: URL, updated/formatVersion при наличии, время получения:
+Bridge: версия get_schema и нужные команды/параметры:
+Система: UUID при наличии, manifest id, редакция, версия/updatedAt:
+Компендиум и записи: UUID, slug, version, currentRevisionId:
+Комната и стол: roomId, tableId, ID участников и предметов:
+Используемые ключи: поля, derived, ресурсы, состояния, результаты шагов:
+Необходимые форматы: ActionDef / usable / REST payload / другой:
+Разрешённые изменения и условия проверки:
+Незакрытые зависимости и ограничения:
+Результаты записи и проверки, созданные ID, следующий шаг:
+</code></pre>
+<p>Сохранённый паспорт помогает найти данные, но не заменяет свежего чтения
+перед новой записью. При смене системы, комнаты, канала или версии действия
+обновите соответствующую часть комплекта.</p>
+    </section>
+
+    <section id="если-у-ассистента-нет-доступа-к-url">
+<h2>10. Если у ассистента нет доступа к URL</h2>
+
+<p>Пользователь может передать содержимое пары машинных документов, гайд
+автоматизации и релевантные части остальных контрактов файлами/текстом.
+Добавьте фактическую definition и объект задачи, укажите даты получения.
+Не передавайте персональный токен ассистенту, который только готовит JSON.</p>
+<p>Если документы/ответы обрезаны, сначала получите недостающие разделы.
+Недостаток контекста отмечается явно. «Исчерпывающий комплект» означает
+прочитанные зависимости и данные, а не только список ссылок на них.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Ролебаза · Страница собрана из источников репозитория скриптом сборки; править вручную нельзя. При расхождении прозы с машинным контрактом истинен контракт.
+</footer>
+</body>
+</html>
